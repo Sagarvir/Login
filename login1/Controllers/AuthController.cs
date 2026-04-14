@@ -25,6 +25,9 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register(LoginRequest request)
     {
+        if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
+            return BadRequest("Username and password are required");
+
         // Check if user exists
         var exists = await _context.Users
             .AnyAsync(u => u.Username == request.Username);
