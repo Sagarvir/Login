@@ -19,7 +19,7 @@ public class JwtService
     {
         new Claim(ClaimTypes.Name, user.Username),
         new Claim(ClaimTypes.Role, user.Role_id.ToString())
-    };
+    };//is an array of type claims , and these are the elements inside it ;
 
         var key = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(_config["Jwt:Key"])

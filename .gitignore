@@ -485,3 +485,4 @@ $RECYCLE.BIN/
 .vs/
 bin/
 obj/
+appsettings.json
