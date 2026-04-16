@@ -5,9 +5,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 [ApiController]
-    [Route("api/auth")]
-    public class AuthController : ControllerBase
-    {
+[Route("api/auth")]
+public class AuthController : ControllerBase
+{
     [Authorize]   // 🔐 ONLY this endpoint is protected
     [HttpGet("secure")]
     public IActionResult Secure()
@@ -25,6 +25,9 @@ using Microsoft.EntityFrameworkCore;
     [HttpPost("register")]
     public async Task<IActionResult> Register(LoginRequest request)
     {
+        if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
+            return BadRequest("Username and password are required");
+
         // Check if user exists
         var exists = await _context.Users
             .AnyAsync(u => u.Username == request.Username);
@@ -62,8 +65,86 @@ using Microsoft.EntityFrameworkCore;
         if (!isValid)
             return Unauthorized("Invalid password");
 
-        var token = _jwtService.GenerateToken(user);
+        var accessToken = _jwtService.GenerateToken(user);
+        var refreshToken = _jwtService.GenerateRefreshToken();
+        var refreshTokenHash = _jwtService.HashToken(refreshToken);
 
-        return Ok(new { token });
+        _context.RefreshTokens.Add(new RefreshToken
+        {
+            UserId = user.Id,
+            TokenHash = refreshTokenHash,
+            ExpiresAtUtc = _jwtService.GetRefreshTokenExpiryUtc(),
+            CreatedAtUtc = DateTime.UtcNow,
+            CreatedByIp = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown"
+        });
+
+        await _context.SaveChangesAsync();
+
+        return Ok(new AuthResponse
+        {
+            AccessToken = accessToken,
+            RefreshToken = refreshToken,
+            AccessTokenExpiresAtUtc = _jwtService.GetAccessTokenExpiryUtc()
+        });
+    }
+
+    [HttpPost("refresh")]
+    public async Task<IActionResult> Refresh(RefreshRequest request)
+    {
+        var tokenHash = _jwtService.HashToken(request.RefreshToken);
+
+        var storedToken = await _context.RefreshTokens
+            .Include(rt => rt.User)
+            .FirstOrDefaultAsync(rt => rt.TokenHash == tokenHash);
+
+        if (storedToken == null)
+            return Unauthorized("Invalid refresh token");
+
+        if (storedToken.RevokedAtUtc != null || storedToken.ExpiresAtUtc <= DateTime.UtcNow)
+            return Unauthorized("Refresh token is no longer active");
+
+        var newRefreshToken = _jwtService.GenerateRefreshToken();
+        var newRefreshTokenHash = _jwtService.HashToken(newRefreshToken);
+
+        storedToken.RevokedAtUtc = DateTime.UtcNow;
+        storedToken.ReplacedByTokenHash = newRefreshTokenHash;
+
+        _context.RefreshTokens.Add(new RefreshToken
+        {
+            UserId = storedToken.UserId,
+            TokenHash = newRefreshTokenHash,
+            ExpiresAtUtc = _jwtService.GetRefreshTokenExpiryUtc(),
+            CreatedAtUtc = DateTime.UtcNow,
+            CreatedByIp = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown"
+        });
+
+        var accessToken = _jwtService.GenerateToken(storedToken.User);
+        await _context.SaveChangesAsync();
+
+        return Ok(new AuthResponse
+        {
+            AccessToken = accessToken,
+            RefreshToken = newRefreshToken,
+            AccessTokenExpiresAtUtc = _jwtService.GetAccessTokenExpiryUtc()
+        });
+    }
+
+    [HttpPost("revoke")]
+    public async Task<IActionResult> Revoke(RefreshRequest request)
+    {
+        var tokenHash = _jwtService.HashToken(request.RefreshToken);
+        var storedToken = await _context.RefreshTokens
+            .FirstOrDefaultAsync(rt => rt.TokenHash == tokenHash);
+
+        if (storedToken == null)
+            return NotFound("Refresh token not found");
+
+        if (storedToken.RevokedAtUtc != null)
+            return BadRequest("Refresh token already revoked");
+
+        storedToken.RevokedAtUtc = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+
+        return Ok("Refresh token revoked");
     }
 }
