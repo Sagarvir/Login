@@ -23,23 +23,26 @@ public class AuthController : ControllerBase
         _context = context;
     }
     [HttpPost("register")]
-    public async Task<IActionResult> Register(LoginRequest request)
+    public async Task<IActionResult> Register(RegisterRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
-            return BadRequest("Username and password are required");
+        if (string.IsNullOrWhiteSpace(request.EmployeeId) || string.IsNullOrWhiteSpace(request.Password) 
+            || string.IsNullOrWhiteSpace(request.FirstName) || string.IsNullOrWhiteSpace(request.LastName))
+            return BadRequest("Employee ID, password, first name, and last name are required");
 
-        // Check if user exists
+        // Check if employee already exists
         var exists = await _context.Users
-            .AnyAsync(u => u.Username == request.Username);
+            .AnyAsync(u => u.EmployeeId == request.EmployeeId);
 
         if (exists)
-            return BadRequest("User already exists");
+            return BadRequest("Employee already registered");
 
         var user = new User
         {
-            Username = request.Username,
+            EmployeeId = request.EmployeeId,
+            FirstName = request.FirstName,
+            LastName = request.LastName,
             Password = BCrypt.Net.BCrypt.HashPassword(request.Password),
-            Role_id = request.Role_id
+            Role_id = null // Role will be assigned by admin later
         };
 
         _context.Users.Add(user);
@@ -51,10 +54,10 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Login(LoginRequest request)
     {
         var user = await _context.Users
-            .FirstOrDefaultAsync(u => u.Username == request.Username);
-        
+            .FirstOrDefaultAsync(u => u.EmployeeId == request.EmployeeId);
+
         if (user == null)
-            return Unauthorized("Invalid username");
+            return Unauthorized("Invalid employee ID");
 
         // 🔐 Compare hashed password
         bool isValid = BCrypt.Net.BCrypt.Verify(

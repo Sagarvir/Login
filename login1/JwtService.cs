@@ -33,8 +33,8 @@ public class JwtService
     {
         var claims = new[]
     {
-        new Claim(ClaimTypes.Name, user.Username),
-        new Claim(ClaimTypes.Role, user.Role_id.ToString())
+        new Claim(ClaimTypes.Name, user.EmployeeId),
+        new Claim(ClaimTypes.Role, user.Role_id?.ToString() ?? "")
     };//is an array of type claims , and these are the elements inside it ;
 
         var key = new SymmetricSecurityKey(_jwtKey);
