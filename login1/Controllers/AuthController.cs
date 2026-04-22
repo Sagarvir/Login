@@ -28,7 +28,7 @@ public class AuthController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.EmployeeId) || string.IsNullOrWhiteSpace(request.Password) 
             || string.IsNullOrWhiteSpace(request.FirstName) || string.IsNullOrWhiteSpace(request.LastName))
             return BadRequest("Employee ID, password, first name, and last name are required");
-
+        var language = User.FindFirst("preferred_language")?.Value;
         // Check if employee already exists
         var exists = await _context.Users
             .AnyAsync(u => u.EmployeeId == request.EmployeeId);
@@ -38,11 +38,12 @@ public class AuthController : ControllerBase
 
         var user = new User
         {
-            EmployeeId = request.EmployeeId,
+            EmployeeId = request.EmployeeId.ToLower(),
             FirstName = request.FirstName,
             LastName = request.LastName,
             Password = BCrypt.Net.BCrypt.HashPassword(request.Password),
-            RoleId = null // Role will be assigned by admin later
+            RoleId = null, // Role will be assigned by admin later
+            PreferredLanguage= request.PreferredLanguage?.ToLower() ?? "english" // Default to English if not provided
         };
 
         _context.Users.Add(user);
@@ -102,13 +103,13 @@ public class AuthController : ControllerBase
         // Find user by EmployeeId
         var user = await _context.Users
             .Include(u => u.Role)
-            .FirstOrDefaultAsync(u => u.EmployeeId == request.EmployeeId);
+            .FirstOrDefaultAsync(u => u.EmployeeId.ToLower() == request.EmployeeId.ToLower());
 
         if (user == null)
             return NotFound($"User with EmployeeId '{request.EmployeeId}' not found");
 
         // Find role by name
-        var role = await _context.Roles.FirstOrDefaultAsync(r => r.Name == request.RoleName);
+        var role = await _context.Roles.FirstOrDefaultAsync(r => r.Name.ToLower() == request.RoleName.ToLower());
 
         if (role == null)
             return NotFound($"Role '{request.RoleName}' not found");
