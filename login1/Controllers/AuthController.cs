@@ -28,7 +28,7 @@ public class AuthController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.EmployeeId) || string.IsNullOrWhiteSpace(request.Password) 
             || string.IsNullOrWhiteSpace(request.FirstName) || string.IsNullOrWhiteSpace(request.LastName))
             return BadRequest("Employee ID, password, first name, and last name are required");
-
+        var language = User.FindFirst("preferred_language")?.Value;
         // Check if employee already exists
         var exists = await _context.Users
             .AnyAsync(u => u.EmployeeId == request.EmployeeId);
@@ -38,11 +38,12 @@ public class AuthController : ControllerBase
 
         var user = new User
         {
-            EmployeeId = request.EmployeeId,
+            EmployeeId = request.EmployeeId.ToLower(),
             FirstName = request.FirstName,
             LastName = request.LastName,
             Password = BCrypt.Net.BCrypt.HashPassword(request.Password),
-            Role_id = null // Role will be assigned by admin later
+            RoleId = null, // Role will be assigned by admin later
+            PreferredLanguage= request.PreferredLanguage?.ToLower() ?? "english" // Default to English if not provided
         };
 
         _context.Users.Add(user);
@@ -54,6 +55,7 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Login(LoginRequest request)
     {
         var user = await _context.Users
+            .Include(u => u.Role)
             .FirstOrDefaultAsync(u => u.EmployeeId == request.EmployeeId);
 
         if (user == null)
@@ -90,7 +92,41 @@ public class AuthController : ControllerBase
             AccessTokenExpiresAtUtc = _jwtService.GetAccessTokenExpiryUtc()
         });
     }
+    [Authorize(Roles = "Admin")]
+    [HttpPut("assign-role")]
+    public async Task<IActionResult> AssignRole(AssignRoleRequest request)
+    {
+        // Validate input
+        if (string.IsNullOrWhiteSpace(request.EmployeeId) || string.IsNullOrWhiteSpace(request.RoleName))
+            return BadRequest("EmployeeId and RoleName are required");
 
+        // Find user by EmployeeId
+        var user = await _context.Users
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.EmployeeId.ToLower() == request.EmployeeId.ToLower());
+
+        if (user == null)
+            return NotFound($"User with EmployeeId '{request.EmployeeId}' not found");
+
+        // Find role by name
+        var role = await _context.Roles.FirstOrDefaultAsync(r => r.Name.ToLower() == request.RoleName.ToLower());
+
+        if (role == null)
+            return NotFound($"Role '{request.RoleName}' not found");
+
+        // Assign role
+        user.RoleId = role.Id;
+        await _context.SaveChangesAsync();
+
+        return Ok(new
+        {
+            message = "Role assigned successfully",
+            employeeId = user.EmployeeId,
+            firstName = user.FirstName,
+            lastName = user.LastName,
+            assignedRole = role.Name
+        });
+    }
     [HttpPost("refresh")]
     public async Task<IActionResult> Refresh(RefreshRequest request)
     {

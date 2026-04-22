@@ -1,5 +1,6 @@
 ﻿using login1.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
 
 namespace login1.Data
 {
@@ -13,6 +14,7 @@ namespace login1.Data
         public DbSet<User> Users { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
 
+        public DbSet<Role> Roles { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
