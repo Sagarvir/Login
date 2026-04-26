@@ -1,0 +1,23 @@
+<form [formGroup]="form" (ngSubmit)="onLogin()">
+  @if (error()) {
+    <div class="error-message">{{ error() }}</div>
+  }
+  
+  <input 
+    type="text" 
+    formControlName="employeeId" 
+    placeholder="Employee ID" 
+    required
+    [disabled]="isLoading()">
+  
+  <input 
+    type="password" 
+    formControlName="password" 
+    placeholder="Password" 
+    required
+    [disabled]="isLoading()">
+  
+  <button type="submit" [disabled]="form.invalid || isLoading()">
+    {{ isLoading() ? 'Logging in...' : 'Login' }}
+  </button>
+</form>

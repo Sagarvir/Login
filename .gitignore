@@ -1,0 +1,68 @@
+ 
+# =========================
+# 🌐 COMMON
+# =========================
+.env
+.DS_Store
+Thumbs.db
+*.log
+
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+.idea/
+.history/
+
+# =========================
+# ⚡ FRONTEND (Angular)
+# =========================
+node_modules/
+dist/
+.angular/
+.angular/cache
+out-tsc/
+tmp/
+coverage/
+.sass-cache/
+
+.vscode/
+.claude/
+.cursor/
+.gemini/
+.junie/
+.windsurf/
+# =========================
+# ⚙️ BACKEND (.NET)
+# =========================
+bin/
+obj/
+*.user
+*.suo
+*.rsuser
+*.db
+*.pdb
+
+.vs/
+TestResults/
+
+# =========================
+# 🧪 BUILD / TEMP
+# =========================
+Debug/
+Release/
+x64/
+x86/
+
+# =========================
+# 🧾 PACKAGE MANAGERS
+# =========================
+npm-debug.log
+yarn-error.log
+
+# =========================
+# 🚫 OPTIONAL (UNCOMMENT IF NEEDED)
+# =========================
+# appsettings.json   ← only if you store secrets
