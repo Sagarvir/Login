@@ -1,0 +1,13 @@
+<form (ngSubmit)="onSignup()">
+  <input type="text" [(ngModel)]="form.employeeId" name="employeeId" placeholder="Employee ID" required />
+  
+  <input type="text" [(ngModel)]="form.firstName" name="firstName" placeholder="First Name" required />
+  
+  <input type="text" [(ngModel)]="form.lastName" name="lastName" placeholder="Last Name" required />
+  
+  <input type="password" [(ngModel)]="form.password" name="password" placeholder="Password" required />
+  
+  <input type="text" [(ngModel)]="form.preferredLanguage" name="preferredLanguage" placeholder="Language (optional)" />
+  
+  <button type="submit">Sign Up</button>
+</form>
