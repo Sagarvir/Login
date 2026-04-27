@@ -1,0 +1,117 @@
+<mat-card class="translation-card">
+  <mat-card-content>
+    <div class="toolbar">
+      <mat-form-field class="search-field" appearance="outline">
+        <mat-icon matPrefix>search</mat-icon>
+        <input
+          matInput
+          (keyup)="applyFilter($event)"
+          placeholder="Search translations..."
+        />
+      </mat-form-field>
+
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="addNewTranslation()"
+        class="add-btn"
+      >
+        <mat-icon>add</mat-icon>
+        <span>Add Translation</span>
+      </button>
+    </div>
+
+    <div class="table-container">
+      <table
+        mat-table
+        [dataSource]="dataSource"
+        class="translation-table"
+      >
+        <!-- Translation Key Column -->
+        <ng-container matColumnDef="translationKey">
+          <th mat-header-cell *matHeaderCellDef>Translation Key</th>
+          <td mat-cell *matCellDef="let element; let i = index">
+            <input
+              matInput
+              type="text"
+              [(ngModel)]="element.translationKey"
+              (change)="updateTranslation(i, element)"
+              class="editable-field"
+            />
+          </td>
+        </ng-container>
+
+        <!-- Original Text Column -->
+        <ng-container matColumnDef="originalText">
+          <th mat-header-cell *matHeaderCellDef>Original Text</th>
+          <td mat-cell *matCellDef="let element; let i = index">
+            <input
+              matInput
+              type="text"
+              [(ngModel)]="element.originalText"
+              (change)="updateTranslation(i, element)"
+              class="editable-field"
+            />
+          </td>
+        </ng-container>
+
+        <!-- Translation Column -->
+        <ng-container matColumnDef="translation">
+          <th mat-header-cell *matHeaderCellDef>Translation</th>
+          <td mat-cell *matCellDef="let element; let i = index">
+            <input
+              matInput
+              type="text"
+              [(ngModel)]="element.translation"
+              (change)="updateTranslation(i, element)"
+              class="editable-field"
+            />
+          </td>
+        </ng-container>
+
+        <!-- Tags Column -->
+        <ng-container matColumnDef="tags">
+          <th mat-header-cell *matHeaderCellDef>Client Project Tags</th>
+          <td mat-cell *matCellDef="let element; let i = index">
+            <input
+              matInput
+              type="text"
+              [(ngModel)]="element.tags"
+              (change)="updateTranslation(i, element)"
+              class="editable-field"
+            />
+          </td>
+        </ng-container>
+
+        <!-- Actions Column -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <td mat-cell *matCellDef="let element; let i = index">
+            <button
+              mat-icon-button
+              color="warn"
+              (click)="deleteTranslation(i)"
+              matTooltip="Delete translation"
+              class="delete-btn"
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr
+          mat-row
+          *matRowDef="let row; columns: displayedColumns"
+          class="translation-row"
+        ></tr>
+      </table>
+    </div>
+
+    <mat-paginator
+      [pageSizeOptions]="[5, 10, 25]"
+      showFirstLastButtons
+      aria-label="Select page of translations"
+    ></mat-paginator>
+  </mat-card-content>
+</mat-card>

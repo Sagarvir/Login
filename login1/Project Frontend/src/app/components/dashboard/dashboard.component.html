@@ -1,0 +1,29 @@
+<div class="dashboard">
+  <div class="stats-container">
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <p class="stat-label">Total Keys</p>
+        <p class="stat-value">{{ stats.totalKeys }}</p>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <p class="stat-label">Translated</p>
+        <p class="stat-value">{{ stats.translated }}</p>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card">
+      <mat-card-content>
+        <p class="stat-label">Completion</p>
+        <p class="stat-value">{{ stats.completion }}%</p>
+        <mat-progress-bar
+          mode="determinate"
+          [value]="stats.completion"
+          class="progress-bar"
+        ></mat-progress-bar>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
