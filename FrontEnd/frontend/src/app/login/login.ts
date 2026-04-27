@@ -12,7 +12,7 @@ interface LoginResponse {
   selector: 'app-login',
   imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './login.html',
-  styleUrl: './login.css',
+  styleUrls: ['./login.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LoginComponent {

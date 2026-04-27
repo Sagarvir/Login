@@ -1,44 +1,75 @@
+import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Component } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import Swal from 'sweetalert2';
-import { FormsModule } from '@angular/forms';
 
 @Component({
   standalone: true,
-  imports: [FormsModule],
+  imports: [CommonModule, ReactiveFormsModule],
   selector: 'app-signup',
-  templateUrl: './signup.html'
+  templateUrl: './signup.html',
+  styleUrls: ['./signup.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SignupComponent {
+  private http = inject(HttpClient);
+  private fb = inject(FormBuilder);
 
-  form = {
-    employeeId: '',
-    firstName: '',
-    lastName: '',
-    password: '',
-    preferredLanguage: ''
-  };
+  form: FormGroup;
+  isLoading = signal(false);
+  error = signal<string | null>(null);
 
-  constructor(private http: HttpClient) {}
+  constructor() {
+    this.form = this.fb.group({
+      employeeId: ['', [Validators.required]],
+      firstName: ['', [Validators.required]],
+      lastName: ['', [Validators.required]],
+      password: ['', [Validators.required, Validators.minLength(6)]],
+      preferredLanguage: [''],
+    });
+  }
 
   onSignup() {
-    this.http.post('https://localhost:7199/api/auth/register', this.form)
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    this.isLoading.set(true);
+    this.error.set(null);
+
+    const body = { ...this.form.value };
+    if (!body.preferredLanguage) {
+      delete body.preferredLanguage;
+    }
+
+    this.http.post('https://localhost:7199/api/auth/register', body, { responseType: 'text' })
       .subscribe({
         next: (res) => {
           console.log('Signup success', res);
-          alert('User registered successfully');
           Swal.fire({
-              icon: 'success',
-              title: 'Signup Successful',
-              text: 'Welcome!',
-              timer: 2000,
-              showConfirmButton: false
-            });
+            icon: 'success',
+            title: 'Signup Successful',
+            text: 'Welcome!',
+            timer: 2000,
+            showConfirmButton: false
+          });
+          this.isLoading.set(false);
         },
         error: (err) => {
-          console.error(err);
-          alert(err.error);
-        }
+          console.error('Signup failed:', err);
+          let errorMessage = 'Signup failed. Please check your data.';
+          if (err.error?.message) {
+            errorMessage = err.error.message;
+          } else if (err.error && typeof err.error === 'string') {
+            errorMessage = err.error;
+          } else if (err.message) {
+            errorMessage = err.message;
+          }
+          this.error.set(errorMessage);
+          this.isLoading.set(false);
+        },
       });
   }
 }
