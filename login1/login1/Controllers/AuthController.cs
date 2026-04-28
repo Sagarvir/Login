@@ -25,25 +25,92 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.EmployeeId) || string.IsNullOrWhiteSpace(request.Password) 
+        // Try to be resilient to different frontends: if required fields are missing
+        // try parsing the raw JSON body case-insensitively (helps when property names differ).
+        if ((request == null) || string.IsNullOrWhiteSpace(request.EmployeeId) || string.IsNullOrWhiteSpace(request.Password)
             || string.IsNullOrWhiteSpace(request.FirstName) || string.IsNullOrWhiteSpace(request.LastName))
-            return BadRequest("Employee ID, password, first name, and last name are required");
-        var language = User.FindFirst("preferred_language")?.Value;
-        // Check if employee already exists
+        {
+            try
+            {
+                Request.EnableBuffering();
+                Request.Body.Position = 0;
+                using var doc = await System.Text.Json.JsonDocument.ParseAsync(Request.Body);
+                var root = doc.RootElement;
+                string? ReadAny(params string[] names)
+                {
+                    foreach (var n in names)
+                    {
+                        if (root.TryGetProperty(n, out var prop) && prop.ValueKind != System.Text.Json.JsonValueKind.Null)
+                            return prop.GetString();
+                        // also try lower/upper variants
+                        if (root.TryGetProperty(n.ToLower(), out prop) && prop.ValueKind != System.Text.Json.JsonValueKind.Null)
+                            return prop.GetString();
+                        if (root.TryGetProperty(n.ToUpper(), out prop) && prop.ValueKind != System.Text.Json.JsonValueKind.Null)
+                            return prop.GetString();
+                    }
+                    return null;
+                }
+
+                request ??= new RegisterRequest();
+                request.EmployeeId ??= ReadAny("employeeId", "EmployeeId", "username", "user", "empId", "employee_id");
+                request.Password ??= ReadAny("password", "Password", "pwd");
+                request.FirstName ??= ReadAny("firstName", "FirstName", "first_name", "fname");
+                request.LastName ??= ReadAny("lastName", "LastName", "last_name", "lname");
+                request.PreferredLanguage ??= ReadAny("preferredLanguage", "PreferredLanguage", "language", "lang");
+                Request.Body.Position = 0;
+            }
+            catch
+            {
+                // ignore parsing errors and continue with model-bound values
+            }
+        }
+        // Support both JSON and form-posted submissions from different frontends.
+        if (request == null)
+        {
+            if (Request.HasFormContentType)
+            {
+                var form = await Request.ReadFormAsync();
+                request = new RegisterRequest
+                {
+                    EmployeeId = form["employeeId"].FirstOrDefault() ?? form["EmployeeId"].FirstOrDefault(),
+                    Password = form["password"].FirstOrDefault() ?? form["Password"].FirstOrDefault(),
+                    FirstName = form["firstName"].FirstOrDefault() ?? form["FirstName"].FirstOrDefault(),
+                    LastName = form["lastName"].FirstOrDefault() ?? form["LastName"].FirstOrDefault(),
+                    PreferredLanguage = form["preferredLanguage"].FirstOrDefault() ?? form["PreferredLanguage"].FirstOrDefault()
+                };
+            }
+        }
+        // normalize and validate inputs (trim + lowercase employee id & language)
+        var emp = request?.EmployeeId?.Trim().ToLower();
+        var pwd = request?.Password?.Trim();
+        var fname = request?.FirstName?.Trim();
+        var lname = request?.LastName?.Trim();
+        var preferred = request?.PreferredLanguage?.Trim().ToLower() ?? "english";
+
+        var missing = new List<string>();
+        if (string.IsNullOrWhiteSpace(emp)) missing.Add("EmployeeId");
+        if (string.IsNullOrWhiteSpace(pwd)) missing.Add("Password");
+        if (string.IsNullOrWhiteSpace(fname)) missing.Add("FirstName");
+        if (string.IsNullOrWhiteSpace(lname)) missing.Add("LastName");
+
+        if (missing.Count > 0)
+            return BadRequest($"Missing required fields: {string.Join(", ", missing)}");
+
+        // Check if employee already exists (case-insensitive)
         var exists = await _context.Users
-            .AnyAsync(u => u.EmployeeId == request.EmployeeId);
+            .AnyAsync(u => u.EmployeeId.ToLower() == emp);
 
         if (exists)
             return BadRequest("Employee already registered");
 
         var user = new User
         {
-            EmployeeId = request.EmployeeId.ToLower(),
-            FirstName = request.FirstName,
-            LastName = request.LastName,
-            Password = BCrypt.Net.BCrypt.HashPassword(request.Password),
+            EmployeeId = emp,
+            FirstName = fname!,
+            LastName = lname!,
+            Password = BCrypt.Net.BCrypt.HashPassword(pwd!),
             RoleId = null, // Role will be assigned by admin later
-            PreferredLanguage= request.PreferredLanguage?.ToLower() ?? "english" // Default to English if not provided
+            PreferredLanguage = string.IsNullOrWhiteSpace(preferred) ? "english" : preferred
         };
 
         _context.Users.Add(user);

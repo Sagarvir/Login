@@ -12,8 +12,8 @@ using login1.Data;
 namespace login1.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260419023103_AddRolesTable")]
-    partial class AddRolesTable
+    [Migration("20260427044152_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -107,10 +107,11 @@ namespace login1.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("RoleId")
-                        .HasColumnType("int");
+                    b.Property<string>("PreferredLanguage")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("Role_id")
+                    b.Property<int?>("RoleId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
