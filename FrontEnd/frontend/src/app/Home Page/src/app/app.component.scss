@@ -1,0 +1,25 @@
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #f2f5f9;
+  padding: 20px 20px 0;
+}
+
+.main-content {
+  flex: 1;
+  padding: 12px 16px 36px;
+  max-width: 1200px;
+  width: 100%;
+  margin: 16px auto 0;
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    padding: 12px 0 24px;
+  }
+
+  .app-container {
+    padding: 16px 16px 0;
+  }
+}

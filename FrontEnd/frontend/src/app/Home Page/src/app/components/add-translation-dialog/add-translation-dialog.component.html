@@ -1,0 +1,25 @@
+<h2 mat-dialog-title>Add Translation</h2>
+<mat-dialog-content>
+  <form [formGroup]="form" class="dialog-form">
+    <mat-form-field appearance="outline">
+      <mat-label>Translation Key</mat-label>
+      <input matInput formControlName="translationKey" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Original Text</mat-label>
+      <input matInput formControlName="originalText" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Client Project Tags</mat-label>
+      <input matInput formControlName="tags" />
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancel</button>
+  <button mat-raised-button color="primary" (click)="submit()">
+    Submit
+  </button>
+</mat-dialog-actions>
