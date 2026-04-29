@@ -22,7 +22,13 @@
     <span *ngIf="form.controls['password'].errors?.['minlength']">Password must be at least 6 characters.</span>
   </div>
 
-  <input type="text" formControlName="preferredLanguage" placeholder="Language (optional)">
+  <!-- ✅ UPDATED DROPDOWN -->
+  <select formControlName="preferredLanguageId" [disabled]="isLoading()" required>
+    <option value="" disabled selected>Select Language</option>
+    <option *ngFor="let lang of languages" [value]="lang.id">
+      {{ lang.name }}
+    </option>
+  </select>
 
   <button type="submit" [disabled]="form.disabled">
     {{ isLoading() ? 'Signing up...' : 'Sign Up' }}

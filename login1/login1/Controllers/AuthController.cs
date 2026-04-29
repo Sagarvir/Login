@@ -56,7 +56,6 @@ public class AuthController : ControllerBase
                 request.Password ??= ReadAny("password", "Password", "pwd");
                 request.FirstName ??= ReadAny("firstName", "FirstName", "first_name", "fname");
                 request.LastName ??= ReadAny("lastName", "LastName", "last_name", "lname");
-                request.PreferredLanguage ??= ReadAny("preferredLanguage", "PreferredLanguage", "language", "lang");
                 Request.Body.Position = 0;
             }
             catch
@@ -76,7 +75,7 @@ public class AuthController : ControllerBase
                     Password = form["password"].FirstOrDefault() ?? form["Password"].FirstOrDefault(),
                     FirstName = form["firstName"].FirstOrDefault() ?? form["FirstName"].FirstOrDefault(),
                     LastName = form["lastName"].FirstOrDefault() ?? form["LastName"].FirstOrDefault(),
-                    PreferredLanguage = form["preferredLanguage"].FirstOrDefault() ?? form["PreferredLanguage"].FirstOrDefault()
+                    PreferredLanguageId = int.TryParse(form["preferredLanguageId"].FirstOrDefault(), out var langId) ? langId : 0,
                 };
             }
         }
@@ -85,7 +84,11 @@ public class AuthController : ControllerBase
         var pwd = request?.Password?.Trim();
         var fname = request?.FirstName?.Trim();
         var lname = request?.LastName?.Trim();
-        var preferred = request?.PreferredLanguage?.Trim().ToLower() ?? "english";
+        var language = await _context.Languages
+    .FirstOrDefaultAsync(l => l.Id == request.PreferredLanguageId);
+
+        if (language == null)
+            return BadRequest("Invalid language selected");
 
         var missing = new List<string>();
         if (string.IsNullOrWhiteSpace(emp)) missing.Add("EmployeeId");
@@ -110,7 +113,7 @@ public class AuthController : ControllerBase
             LastName = lname!,
             Password = BCrypt.Net.BCrypt.HashPassword(pwd!),
             RoleId = null, // Role will be assigned by admin later
-            PreferredLanguage = string.IsNullOrWhiteSpace(preferred) ? "english" : preferred
+            PreferredLanguageId = language.Id
         };
 
         _context.Users.Add(user);
@@ -123,6 +126,7 @@ public class AuthController : ControllerBase
     {
         var user = await _context.Users
             .Include(u => u.Role)
+            .Include(u => u.PreferredLanguage)
             .FirstOrDefaultAsync(u => u.EmployeeId == request.EmployeeId);
 
         if (user == null)

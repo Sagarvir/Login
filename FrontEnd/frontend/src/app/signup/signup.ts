@@ -20,17 +20,28 @@ export class SignupComponent {
   isLoading = signal(false);
   error = signal<string | null>(null);
 
+  // Hardcoded 5 languages with their IDs
+  languages = [
+    { id: 1, name: 'English' },
+    { id: 2, name: 'French' },
+    { id: 3, name: 'Spanish' },
+    { id: 4, name: 'German' },
+    { id: 5, name: 'Japanese' }
+  ];
+
   constructor() {
     this.form = this.fb.group({
       employeeId: ['', [Validators.required]],
       firstName: ['', [Validators.required]],
       lastName: ['', [Validators.required]],
       password: ['', [Validators.required, Validators.minLength(6)]],
-      preferredLanguage: [''],
+      preferredLanguageId: ['', [Validators.required]],
     });
   }
 
   onSignup() {
+    console.log(this.form.value);
+
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -40,9 +51,11 @@ export class SignupComponent {
     this.error.set(null);
 
     const body = { ...this.form.value };
-    if (!body.preferredLanguage) {
-      delete body.preferredLanguage;
-    }
+
+    // ❌ REMOVE old logic (important)
+    // if (!body.preferredLanguage) {
+    //   delete body.preferredLanguage;
+    // }
 
     this.http.post('https://localhost:7199/api/auth/register', body, { responseType: 'text' })
       .subscribe({

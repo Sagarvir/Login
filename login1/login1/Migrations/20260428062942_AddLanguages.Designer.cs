@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using login1.Data;
 
@@ -11,9 +12,11 @@ using login1.Data;
 namespace login1.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260428062942_AddLanguages")]
+    partial class AddLanguages
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -148,15 +151,14 @@ namespace login1.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("PreferredLanguageId")
-                        .HasColumnType("int");
+                    b.Property<string>("PreferredLanguage")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("RoleId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("PreferredLanguageId");
 
                     b.HasIndex("RoleId");
 
@@ -176,15 +178,9 @@ namespace login1.Migrations
 
             modelBuilder.Entity("login1.Models.User", b =>
                 {
-                    b.HasOne("login1.Models.Language", "PreferredLanguage")
-                        .WithMany()
-                        .HasForeignKey("PreferredLanguageId");
-
                     b.HasOne("Role", "Role")
                         .WithMany()
                         .HasForeignKey("RoleId");
-
-                    b.Navigation("PreferredLanguage");
 
                     b.Navigation("Role");
                 });
