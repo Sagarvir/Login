@@ -2,26 +2,26 @@
   @if (error()) {
     <div class="error-message">{{ error() }}</div>
   }
-  
-  <input 
-    type="text" 
-    formControlName="employeeId" 
-    placeholder="Employee ID" 
+
+  <input
+    type="text"
+    formControlName="employeeId"
+    placeholder="Employee ID"
     required
     [disabled]="isLoading()">
-  
-  <input 
-    type="password" 
-    formControlName="password" 
-    placeholder="Password" 
+
+  <input
+    type="password"
+    formControlName="password"
+    placeholder="Password"
     required
     [disabled]="isLoading()">
-  
+
+  <div class="signup-link">
+    <p>Don't have an account? <button routerLink="/signup" class="signup-button">Sign Up</button></p>
+  </div>
+
   <button type="submit" [disabled]="form.invalid || isLoading()">
     {{ isLoading() ? 'Logging in...' : 'Login' }}
   </button>
 </form>
-<div class="signup-footer">
-  <p>Don't have an account?</p>
-  <button routerLink="/signup" class="signup-button">Sign Up</button>
-</div>

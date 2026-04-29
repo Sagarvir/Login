@@ -4,11 +4,21 @@ import { MatCardModule } from '@angular/material/card';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { TranslationService } from '../../services/translation.service';
 import { DashboardStats } from '../../models/translation.model';
+import { HeaderComponent } from '../header/header.component';
+import { TranslationTableComponent } from '../translation-table/translation-table.component';
+import { FooterComponent } from '../footer/footer.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatProgressBarModule],
+  imports: [
+    CommonModule,
+    MatCardModule,
+    MatProgressBarModule,
+    HeaderComponent,
+    TranslationTableComponent,
+    FooterComponent
+  ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })

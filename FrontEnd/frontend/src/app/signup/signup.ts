@@ -2,6 +2,7 @@ import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router'; // imported route for navigation
 import Swal from 'sweetalert2';
 
 @Component({
@@ -15,6 +16,7 @@ import Swal from 'sweetalert2';
 export class SignupComponent {
   private http = inject(HttpClient);
   private fb = inject(FormBuilder);
+  private router = inject(Router); // added route injection
 
   form: FormGroup;
   isLoading = signal(false);
@@ -52,26 +54,29 @@ export class SignupComponent {
 
     const body = { ...this.form.value };
 
-    // ❌ REMOVE old logic (important)
-    // if (!body.preferredLanguage) {
-    //   delete body.preferredLanguage;
-    // }
-
     this.http.post('https://localhost:7199/api/auth/register', body, { responseType: 'text' })
       .subscribe({
         next: (res) => {
           console.log('Signup success', res);
+
           Swal.fire({
             icon: 'success',
             title: 'Signup Successful',
             text: 'Welcome!',
-            timer: 2000,
+            timer: 1500,
             showConfirmButton: false
           });
+
           this.isLoading.set(false);
+
+          // redirect to dashboard
+          setTimeout(() => {
+            this.router.navigate(['/dashboard']);
+          }, 1500);
         },
         error: (err) => {
           console.error('Signup failed:', err);
+
           let errorMessage = 'Signup failed. Please check your data.';
           if (err.error?.message) {
             errorMessage = err.error.message;
@@ -80,6 +85,7 @@ export class SignupComponent {
           } else if (err.message) {
             errorMessage = err.message;
           }
+
           this.error.set(errorMessage);
           this.isLoading.set(false);
         },

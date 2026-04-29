@@ -1,8 +1,9 @@
 import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router'; // added route imports
 import Swal from 'sweetalert2';
+
 interface LoginResponse {
   accessToken: string;
   refreshToken: string;
@@ -18,6 +19,7 @@ interface LoginResponse {
 export class LoginComponent {
   private http = inject(HttpClient);
   private fb = inject(FormBuilder);
+  private router = inject(Router); // added route injection
 
   form: FormGroup;
   isLoading = signal(false);
@@ -38,22 +40,29 @@ export class LoginComponent {
 
     const body = this.form.value;
 
-this.http.post<LoginResponse>('https://localhost:7199/api/auth/login', body)
+    this.http.post<LoginResponse>('https://localhost:7199/api/auth/login', body)
       .subscribe({
         next: (res) => {
           localStorage.setItem('accessToken', res.accessToken);
           localStorage.setItem('refreshToken', res.refreshToken);
+
           console.log('Login success');
-          // Show success alert using SweetAlert2
-          // dont change this while changing UI
-           Swal.fire({
-    icon: 'success',
-    title: 'Login Successful',
-    text: 'Welcome back!',
-    timer: 2000,
-    showConfirmButton: false
-  });//TILL HERE 
+
+          //  KEEP THIS AS YOU SAID
+          Swal.fire({
+            icon: 'success',
+            title: 'Login Successful',
+            text: 'Welcome back!',
+            timer: 1500,
+            showConfirmButton: false
+          });
+
           this.isLoading.set(false);
+
+          //  REDIRECT TO DASHBOARD
+          setTimeout(() => {
+            this.router.navigate(['/dashboard']);
+          }, 1500);
         },
         error: (err) => {
           console.error('Login failed:', err);

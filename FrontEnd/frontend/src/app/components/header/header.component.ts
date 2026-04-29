@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { Router } from '@angular/router';
 import { TranslationService } from '../../services/translation.service';
 
 @Component({
@@ -34,7 +35,8 @@ export class HeaderComponent {
 
   constructor(
     private translationService: TranslationService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private router: Router
   ) {}
 
   saveTranslations(): void {
@@ -56,9 +58,17 @@ export class HeaderComponent {
   }
 
   logout(): void {
-    console.log('Logout clicked');
+    // Clear authentication tokens
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+
     this.snackBar.open('You have been logged out', 'Close', {
       duration: 3000,
     });
+
+    // Navigate back to login page
+    setTimeout(() => {
+      this.router.navigate(['/']);
+    }, 1000);
   }
 }
