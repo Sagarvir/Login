@@ -1,0 +1,39 @@
+<mat-toolbar class="header">
+  <div class="toolbar-content">
+    <div class="logo-section">
+      <div class="logo-badge">
+        <mat-icon>public</mat-icon>
+      </div>
+      <div class="header-info">
+        <h1>Translation Management</h1>
+        <div class="user-info">
+          <span>User: {{ userInfo.userId }} • Language: {{ userInfo.language }}</span>
+          <span class="separator">•</span>
+          <mat-icon class="role-icon" matTooltip="Creator Role">verified_user</mat-icon>
+          <span class="role">{{ userInfo.role }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button
+        mat-raised-button
+        (click)="saveTranslations()"
+        [disabled]="isSaving"
+        class="save-btn"
+      >
+        <mat-icon>save</mat-icon>
+        <span>{{ isSaving ? 'Saving...' : 'Save Translations' }}</span>
+      </button>
+        <button
+          mat-button
+          color="accent"
+          (click)="logout()"
+          class="logout-btn"
+        >
+          <mat-icon>logout</mat-icon>
+          <span>Logout</span>
+        </button>
+    </div>
+  </div>
+</mat-toolbar>

@@ -1,0 +1,47 @@
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
+
+:root {
+  --brand-navy: #0f2f4f;
+  --brand-blue: #1f5e97;
+  --brand-blue-strong: #0f4c81;
+  --brand-slate: #425466;
+  --brand-muted: #6b7a90;
+  --surface: #ffffff;
+  --surface-muted: #f6f8fb;
+  --surface-border: #dfe5ee;
+  --shadow-soft: 0 6px 18px rgba(15, 41, 79, 0.08);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  font-family: Manrope, "Segoe UI", sans-serif;
+  background-color: #f2f5f9;
+  color: #1f2a37;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
