@@ -1,13 +1,20 @@
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withFetch } from '@angular/common/http';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { importProvidersFrom } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
+import { AuthInterceptor } from './core/interceptors/auth.interceptor';
+
 export const appConfig = {
   providers: [
-    provideHttpClient(),
+    provideHttpClient(withFetch()),
     importProvidersFrom(FormsModule),
-    provideRouter(routes)
+    provideRouter(routes),
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthInterceptor,
+      multi: true
+    }
   ]
 };
-

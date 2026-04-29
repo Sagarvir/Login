@@ -1,8 +1,8 @@
 import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import Swal from 'sweetalert2';
+import { AuthService } from '../core/services/auth.service';
 interface LoginResponse {
   accessToken: string;
   refreshToken: string;
@@ -16,7 +16,8 @@ interface LoginResponse {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LoginComponent {
-  private http = inject(HttpClient);
+  private authService = inject(AuthService);
+  private router = inject(Router);
   private fb = inject(FormBuilder);
 
   form: FormGroup;
@@ -36,24 +37,21 @@ export class LoginComponent {
     this.isLoading.set(true);
     this.error.set(null);
 
-    const body = this.form.value;
+    const { employeeId, password } = this.form.value;
 
-this.http.post<LoginResponse>('https://localhost:7199/api/auth/login', body)
+    this.authService.login({ employeeId, password })
       .subscribe({
         next: (res) => {
-          localStorage.setItem('accessToken', res.accessToken);
-          localStorage.setItem('refreshToken', res.refreshToken);
           console.log('Login success');
-          // Show success alert using SweetAlert2
-          // dont change this while changing UI
-           Swal.fire({
-    icon: 'success',
-    title: 'Login Successful',
-    text: 'Welcome back!',
-    timer: 2000,
-    showConfirmButton: false
-  });//TILL HERE 
+          Swal.fire({
+            icon: 'success',
+            title: 'Login Successful',
+            text: 'Welcome back!',
+            timer: 2000,
+            showConfirmButton: false
+          });
           this.isLoading.set(false);
+          this.router.navigate(['/admin']);
         },
         error: (err) => {
           console.error('Login failed:', err);
