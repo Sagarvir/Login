@@ -1,0 +1,157 @@
+.header {
+  padding: 16px 22px;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid #dfe5ee;
+  box-shadow: 0 6px 16px rgba(15, 41, 79, 0.08);
+  color: #1f2a37;
+  max-width: 1200px;
+  margin: 0 auto;
+  min-height: unset;
+  height: auto;
+
+  .toolbar-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 20px;
+  }
+
+  .logo-section {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+
+    .logo-badge {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0f4c81;
+      color: #ffffff;
+
+      mat-icon {
+        font-size: 22px;
+        width: 22px;
+        height: 22px;
+      }
+    }
+
+    .header-info {
+      h1 {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: -0.2px;
+      }
+
+      .user-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: #6b7a90;
+
+        .separator {
+          margin: 0 4px;
+        }
+
+        .role-icon {
+          font-size: 14px;
+          width: 14px;
+          height: 14px;
+          color: #1f5e97;
+        }
+
+        .role {
+          color: #425466;
+          font-weight: 600;
+        }
+      }
+    }
+  }
+
+  .actions {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+
+    button {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+    }
+
+    .save-btn {
+      padding: 10px 18px;
+      border-radius: 10px;
+      color: #ffffff;
+      background: #0f4c81;
+      box-shadow: 0 8px 16px rgba(15, 76, 129, 0.2);
+    }
+
+    .logout-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      border: 1px solid #dfe5ee;
+      background: #ffffff;
+      color: #6b7a90;
+      padding: 0 14px;
+      min-width: auto;
+      gap: 8px;
+
+      span {
+        font-weight: 600;
+        font-size: 12px;
+        letter-spacing: 0.2px;
+      }
+
+      &:hover {
+        border-color: #c7d2e0;
+        background: #f6f8fb;
+        color: #0f2f4f;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 12px 14px;
+
+    .toolbar-content {
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .logo-section {
+      width: 100%;
+      justify-content: space-between;
+
+      .header-info {
+        flex: 1;
+
+        h1 {
+          font-size: 20px;
+        }
+      }
+    }
+
+    .actions {
+      width: 100%;
+      justify-content: space-between;
+    }
+  }
+}

@@ -74,13 +74,48 @@ button:disabled {
   cursor: not-allowed;
 }
 
+.signup-link {
+  text-align: center;
+  margin: 10px 0;
+}
+
+.signup-link p {
+  margin: 0;
+  color: #1e3a8a;
+  font-size: 14px;
+  display: inline;
+}
+
+.signup-link .signup-button {
+  background: none;
+  border: none;
+  color: #ff6b35;
+  text-decoration: underline;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 5px;
+  transition: color 0.3s ease;
+}
+
+.signup-link .signup-button:hover {
+  color: #e55a2b;
+  background: none;
+}
+
 button[routerLink] {
   background-color: transparent;
   color: #1e3a8a;
-  text-decoration: underline;
-  font-weight: normal;
+  border: 2px solid #1e3a8a;
+  border-radius: 5px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-button[routerLink]:hover {
-  color: #ff6b35;
+button.signup-button:hover {
+  background-color: #1e3a8a;
+  color: #ffffff;
 }

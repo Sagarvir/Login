@@ -6,6 +6,6 @@
         public string? Password { get; set; }
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
-        public string? PreferredLanguage { get; set; } = "english"; // default
+        public int PreferredLanguageId { get; set; }
     }
 }

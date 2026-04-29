@@ -15,6 +15,7 @@ namespace login1.Data
         public DbSet<RefreshToken> RefreshTokens { get; set; }
 
         public DbSet<Role> Roles { get; set; }
+        public DbSet<Language> Languages { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -28,6 +29,14 @@ namespace login1.Data
                 .WithMany()
                 .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Language>().HasData(
+    new Language { Id = 1, Name = "English" },
+    new Language { Id = 2, Name = "Spanish" },
+    new Language { Id = 3, Name = "French" },
+    new Language { Id = 4, Name = "German" },
+    new Language { Id = 5, Name = "Japanese" }
+);
         }
     }
 }
