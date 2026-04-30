@@ -12,8 +12,8 @@ using login1.Data;
 namespace login1.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260428071106_AddPreferredLanguageToUser")]
-    partial class AddPreferredLanguageToUser
+    [Migration("20260430033327_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

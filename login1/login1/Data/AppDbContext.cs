@@ -37,6 +37,10 @@ namespace login1.Data
     new Language { Id = 4, Name = "German" },
     new Language { Id = 5, Name = "Japanese" }
 );
+            modelBuilder.Entity<User>()
+    .HasOne(u => u.PreferredLanguage)
+    .WithMany()
+    .HasForeignKey(u => u.PreferredLanguageId);
         }
     }
 }
