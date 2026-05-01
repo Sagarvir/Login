@@ -37,10 +37,19 @@ namespace login1.Data
     new Language { Id = 4, Name = "German" },
     new Language { Id = 5, Name = "Japanese" }
 );
+
+            // Configure User -> Language relationship
             modelBuilder.Entity<User>()
-    .HasOne(u => u.PreferredLanguage)
-    .WithMany()
-    .HasForeignKey(u => u.PreferredLanguageId);
+                .HasOne(u => u.PreferredLanguage)
+                .WithMany()
+                .HasForeignKey(u => u.PreferredLanguageId);
+
+            // Configure User -> Role relationship ✅ ADDED
+            modelBuilder.Entity<User>()
+                .HasOne(u => u.Role)
+                .WithMany()
+                .HasForeignKey(u => u.RoleId)
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

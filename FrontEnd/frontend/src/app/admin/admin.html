@@ -1,4 +1,19 @@
-<input [(ngModel)]="employeeId" placeholder="Enter employee ID">
-<input [(ngModel)]="role" placeholder="Enter role">
+<form>
+  <input 
+    [(ngModel)]="employeeId" 
+    placeholder="Enter employee ID" 
+    name="employeeId"
+  >
 
-<button (click)="assignRole()">Assign Role</button>
+  <select [(ngModel)]="roleName" name="roleName">
+  <option value="" disabled hidden>Select a role</option>
+
+  <option *ngFor="let role of availableRoles" [value]="role">
+    {{ role }}
+  </option>
+</select>
+
+  <button type="button" (click)="assignRole()">
+    Assign Role
+  </button>
+</form>

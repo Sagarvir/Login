@@ -106,13 +106,19 @@ public class AuthController : ControllerBase
         if (exists)
             return BadRequest("Employee already registered");
 
+        // Get default role (Viewer)
+        var viewerRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name.ToLower() == "viewer");
+
+        if (viewerRole == null)
+            return BadRequest("Default role 'Viewer' not found. Please contact administrator.");
+
         var user = new User
         {
             EmployeeId = emp,
             FirstName = fname!,
             LastName = lname!,
             Password = BCrypt.Net.BCrypt.HashPassword(pwd!),
-            RoleId = null, // Role will be assigned by admin later
+            RoleId = viewerRole.Id, // Default role: Viewer
             PreferredLanguageId = language.Id
         };
 
@@ -127,7 +133,7 @@ public class AuthController : ControllerBase
         var user = await _context.Users
             .Include(u => u.Role)
             .Include(u => u.PreferredLanguage)
-            .FirstOrDefaultAsync(u => u.EmployeeId == request.EmployeeId);
+            .FirstOrDefaultAsync(u => u.EmployeeId.ToLower() == request.EmployeeId.ToLower());
 
         if (user == null)
             return Unauthorized("Invalid employee ID");
@@ -140,6 +146,12 @@ public class AuthController : ControllerBase
 
         if (!isValid)
             return Unauthorized("Invalid password");
+
+        // Validate that role is loaded
+        if (user.Role == null && user.RoleId.HasValue)
+        {
+            return StatusCode(500, "Error: User role is not configured properly. Please contact administrator.");
+        }
 
         var accessToken = _jwtService.GenerateToken(user);
         var refreshToken = _jwtService.GenerateRefreshToken();
@@ -174,6 +186,7 @@ public class AuthController : ControllerBase
         // Find user by EmployeeId
         var user = await _context.Users
             .Include(u => u.Role)
+            .Include(u => u.PreferredLanguage)
             .FirstOrDefaultAsync(u => u.EmployeeId.ToLower() == request.EmployeeId.ToLower());
 
         if (user == null)

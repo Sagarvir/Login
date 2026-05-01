@@ -36,8 +36,8 @@ constructor(private http: HttpClient, @Inject(PLATFORM_ID) private platformId: O
       })
     );
   }
-  assignRole(data: { employeeId: string; role: string }): Observable<any> {
-  return this.http.post('https://localhost:7199/api/admin/assign-role', data);
+  assignRole(data: { employeeId: string; roleName: string }): Observable<any> {
+  return this.http.put('https://localhost:7199/api/auth/assign-role', data);
 }
  logout() {
   const refreshToken = this.getRefreshToken();

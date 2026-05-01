@@ -32,12 +32,12 @@ public class JwtService
     public string GenerateToken(User user)
     {
         var claims = new List<Claim>
-{
-    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-    new Claim(ClaimTypes.Name, user.EmployeeId.ToLower()),
-    new Claim(ClaimTypes.Role, user.Role?.Name.ToLower() ?? ""),
-    new Claim("preferred_language", user.PreferredLanguage!.Name.ToLower())
-};//is an array of type claims , and these are the elements inside it ;
+        {
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.Name, user.EmployeeId.ToLower()),
+            new Claim(ClaimTypes.Role, user.Role?.Name ?? "Viewer"),
+            new Claim("preferred_language", user.PreferredLanguage?.Name?.ToLower() ?? "english")
+        }; //is an array of type claims , and these are the elements inside it ;
 
         var key = new SymmetricSecurityKey(_jwtKey);
 
