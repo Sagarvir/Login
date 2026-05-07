@@ -1,0 +1,9 @@
+<!-- Visible to everyone -->
+<button *ngIf="isAdmin()" routerLink="/dashboard">Home</button>
+
+<!-- Only Admin -->
+<button *ngIf="isAdmin()" routerLink="/admin/assign-role">
+  Assign Role
+</button>
+<button (click)="logout()">Logout</button>
+<router-outlet></router-outlet>

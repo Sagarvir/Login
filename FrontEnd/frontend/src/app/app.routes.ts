@@ -1,25 +1,46 @@
 import { LoginComponent } from './login/login';
 import { SignupComponent } from './signup/signup';
-import { AdminComponent } from './admin/admin';
+import { AssignRoleComponent } from './admin/assign-role';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { AuthRoleGuard } from './core/guards/auth-role.guard';
+import { NoAuthGuard } from './core/guards/no-auth.guard';
+import { AdminLayoutComponent } from './admin-layout/admin-layout';
+import { Routes } from '@angular/router';
+import { MainLayout } from './main-layout/main-layout'
 
-export const routes = [
-  { path: '', component: LoginComponent },
-  { path: 'signup', component: SignupComponent },
+export const routes: Routes = [
+  // ✅ Login & Signup - only for non-authenticated users
+  { path: '', component: LoginComponent, canActivate: [NoAuthGuard] },
+  { path: 'signup', component: SignupComponent, canActivate: [NoAuthGuard] },
 
-  // ✅ Dashboard (logged-in users)
+  // ✅ Protected routes wrapped in MainLayout
   {
     path: 'dashboard',
-    component: DashboardComponent,
-    canActivate: [AuthRoleGuard]
+    component: MainLayout,
+    canActivate: [AuthRoleGuard],
+    children: [
+      {
+        path: '',
+        component: DashboardComponent
+      }
+    ]
   },
 
-  // ✅ Admin (role-based)
+  // ✅ Admin routes
   {
     path: 'admin',
-    component: AdminComponent,
+    component: MainLayout,
     canActivate: [AuthRoleGuard],
-    data: { roles: ['Admin'] }
-  }
+    data: { roles: ['Admin'] },
+    children: [
+      {
+        path: 'assign-role',
+        component: AssignRoleComponent
+      },
+      { path: '', redirectTo: 'assign-role', pathMatch: 'full' }
+    ]
+  },
+
+  // ✅ Wildcard - redirect unknown routes to login
+  { path: '**', redirectTo: '' }
 ];

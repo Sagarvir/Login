@@ -60,7 +60,7 @@ export class LoginComponent {
          const role = this.authService.getUserRole();
 
 if (role?.toLowerCase() === 'admin') {
-  this.router.navigate(['/admin']);
+  this.router.navigate(['/admin/assign-role']);
 } else {
   this.router.navigate(['/dashboard']);
 }

@@ -4,13 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import Swal from 'sweetalert2';
 @Component({
-  selector: 'app-admin',
+  selector: 'app-assign-role',
   standalone: true,
   imports: [FormsModule, CommonModule],
-  templateUrl: './admin.html',
-  styleUrls: ['./admin.css']
+  templateUrl: './assign-role.html',
+  styleUrls: ['./assign-role.css']
 })
-export class AdminComponent {
+export class AssignRoleComponent {
 
   employeeId = '';
   roleName = '';
