@@ -5,5 +5,8 @@
 <button *ngIf="isAdmin()" routerLink="/admin/assign-role">
   Assign Role
 </button>
+<button *ngIf="isAdmin()" routerLink="/admin/add-language">
+  Add Language
+</button>
 <button (click)="logout()">Logout</button>
 <router-outlet></router-outlet>

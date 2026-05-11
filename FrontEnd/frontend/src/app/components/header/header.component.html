@@ -25,6 +25,16 @@
         <mat-icon>save</mat-icon>
         <span>{{ isSaving ? 'Saving...' : 'Save Translations' }}</span>
       </button>
+      <button
+        mat-raised-button
+        (click)="goToAddLanguage()"
+        *ngIf="isAdmin()"
+        class="add-language-btn"
+        matTooltip="Add a new language"
+      >
+        <mat-icon>language</mat-icon>
+        <span>Add Language</span>
+      </button>
         <button
           mat-button
           color="accent"

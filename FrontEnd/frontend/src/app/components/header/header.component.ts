@@ -8,6 +8,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import { TranslationService } from '../../services/translation.service';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-header',
@@ -36,8 +37,11 @@ export class HeaderComponent {
   constructor(
     private translationService: TranslationService,
     private snackBar: MatSnackBar,
-    private router: Router
-  ) {}
+    private router: Router,
+    private authService: AuthService
+  ) {
+    this.userInfo.role = this.authService.getUserRole() || 'Creator';
+  }
 
   saveTranslations(): void {
     this.isSaving = true;
@@ -55,6 +59,14 @@ export class HeaderComponent {
         });
       },
     });
+  }
+
+  isAdmin(): boolean {
+    return this.userInfo.role === 'Admin';
+  }
+
+  goToAddLanguage(): void {
+    this.router.navigate(['/admin/add-language']);
   }
 
   logout(): void {

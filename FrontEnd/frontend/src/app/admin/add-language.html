@@ -1,0 +1,19 @@
+<form>
+  <input 
+    [(ngModel)]="languageCode" 
+    placeholder="Enter language code (e.g., EN, FR, ES)" 
+    name="languageCode"
+    type="text"
+  >
+
+  <input 
+    [(ngModel)]="languageName" 
+    placeholder="Enter language name (e.g., English, French, Spanish)" 
+    name="languageName"
+    type="text"
+  >
+
+  <button type="button" (click)="addLanguage()" [disabled]="isLoading">
+    {{ isLoading ? 'Adding...' : 'Add Language' }}
+  </button>
+</form>

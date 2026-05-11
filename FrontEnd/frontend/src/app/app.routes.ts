@@ -1,6 +1,7 @@
 import { LoginComponent } from './login/login';
 import { SignupComponent } from './signup/signup';
 import { AssignRoleComponent } from './admin/assign-role';
+import { AddLanguageComponent } from './admin/add-language';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { AuthRoleGuard } from './core/guards/auth-role.guard';
 import { NoAuthGuard } from './core/guards/no-auth.guard';
@@ -36,6 +37,10 @@ export const routes: Routes = [
       {
         path: 'assign-role',
         component: AssignRoleComponent
+      },
+      {
+        path: 'add-language',
+        component: AddLanguageComponent
       },
       { path: '', redirectTo: 'assign-role', pathMatch: 'full' }
     ]
