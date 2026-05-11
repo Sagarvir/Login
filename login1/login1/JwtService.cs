@@ -36,6 +36,7 @@ public class JwtService
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Name, user.EmployeeId.ToLower()),
             new Claim(ClaimTypes.Role, user.Role?.Name ?? "Viewer"),
+            new Claim("empId", user.EmployeeId.ToLower()),
             new Claim("preferred_language", user.PreferredLanguage?.Name?.ToLower() ?? "english")
         }; //is an array of type claims , and these are the elements inside it ;
 
@@ -47,7 +48,7 @@ public class JwtService
             issuer: _issuer,
             audience: _audience,
             claims: claims,
-            notBefore: DateTime.UtcNow,
+           // notBefore: DateTime.UtcNow,
             expires: GetAccessTokenExpiryUtc(),
             signingCredentials: creds
         );
