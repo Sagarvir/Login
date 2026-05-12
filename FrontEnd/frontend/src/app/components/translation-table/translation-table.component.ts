@@ -59,6 +59,12 @@ export class TranslationTableComponent implements OnInit, AfterViewInit {
   ) {}
 
   ngOnInit(): void {
+    this.translationService.loadTranslations().subscribe({
+      error: (err) => {
+        console.error('Failed to load translations in table', err);
+      }
+    });
+
     this.translationService.getTranslations().subscribe((translations) => {
       this.dataSource.data = translations;
       if (this.paginator) {
@@ -78,19 +84,38 @@ export class TranslationTableComponent implements OnInit, AfterViewInit {
   }
 
   updateTranslation(index: number, translation: Translation): void {
-    this.translationService.updateTranslation(index, translation);
+    this.translationService.updateTranslation(index, translation).subscribe({
+      next: () => {
+        this.snackBar.open('Translation updated successfully', 'Close', {
+          duration: 2000,
+        });
+      },
+      error: (err) => {
+        const message = err.error?.message || err.message || 'Failed to update translation';
+        this.snackBar.open(message, 'Close', { duration: 3000 });
+      }
+    });
   }
 
   deleteTranslation(index: number): void {
     const dialogRef = this.dialog.open(DeleteConfirmDialogComponent);
 
     dialogRef.afterClosed().subscribe((result) => {
-      if (result) {
-        this.translationService.deleteTranslation(index);
-        this.snackBar.open('Translation deleted successfully', 'Close', {
-          duration: 2000,
-        });
+      if (!result) {
+        return;
       }
+
+      this.translationService.deleteTranslation(index).subscribe({
+        next: () => {
+          this.snackBar.open('Translation deleted successfully', 'Close', {
+            duration: 2000,
+          });
+        },
+        error: (err) => {
+          const message = err.error?.message || err.message || 'Failed to delete translation';
+          this.snackBar.open(message, 'Close', { duration: 3000 });
+        }
+      });
     });
   }
 
@@ -104,15 +129,23 @@ export class TranslationTableComponent implements OnInit, AfterViewInit {
         return;
       }
 
-      this.translationService.addTranslation({
+      const newTranslation: Translation = {
         translationKey: result.translationKey || '',
         originalText: result.originalText || '',
         translation: '',
         tags: result.tags || '',
-      });
+      };
 
-      this.snackBar.open('New translation added', 'Close', {
-        duration: 2000,
+      this.translationService.addTranslation(newTranslation).subscribe({
+        next: () => {
+          this.snackBar.open('New translation added', 'Close', {
+            duration: 2000,
+          });
+        },
+        error: (err) => {
+          const message = err.error?.message || err.message || 'Failed to add translation';
+          this.snackBar.open(message, 'Close', { duration: 3000 });
+        }
       });
     });
   }

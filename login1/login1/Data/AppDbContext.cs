@@ -16,6 +16,10 @@ namespace login1.Data
 
         public DbSet<Role> Roles { get; set; }
         public DbSet<Language> Languages { get; set; }
+        public DbSet<TranslationKey> TranslationKeys { get; set; }
+        public DbSet<TranslationValue> TranslationValues { get; set; }
+        public DbSet<Project> Projects { get; set; }
+        public DbSet<KeyProject> KeyProjects { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -50,6 +54,33 @@ namespace login1.Data
                 .WithMany()
                 .HasForeignKey(u => u.RoleId)
                 .OnDelete(DeleteBehavior.SetNull);
+            modelBuilder.Entity<TranslationKey>()
+            .HasIndex(k => k.KeyName)
+            .IsUnique();
+
+            modelBuilder.Entity<TranslationValue>()
+            .HasIndex(t => new { t.KeyId, t.LanguageCode })
+            .IsUnique();
+
+            modelBuilder.Entity<TranslationValue>()
+            .HasOne(t => t.Key)
+            .WithMany(k => k.Translations)
+            .HasForeignKey(t => t.KeyId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<KeyProject>()
+            .HasOne(kp => kp.Key)
+            .WithMany(k => k.KeyProjects)
+            .HasForeignKey(kp => kp.KeyId);
+
+            modelBuilder.Entity<KeyProject>()
+            .HasOne(kp => kp.Project)
+            .WithMany(p => p.KeyProjects)
+            .HasForeignKey(kp => kp.ProjectId);
+
+            modelBuilder.Entity<KeyProject>()
+            .HasIndex(kp => new { kp.KeyId, kp.ProjectId })
+            .IsUnique();
         }
     }
 }

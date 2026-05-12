@@ -1,8 +1,8 @@
-<nav>
-  <button routerLink="/dashboard">Home</button>
-  <button routerLink="/admin/assign-role">Assign Role</button>
-  <button routerLink="/admin/add-language">Add Language</button>
-  <button (click)="logout()">Logout</button>
+<nav class="admin-nav">
+  <button class="nav-button" routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</button>
+  <button class="nav-button" routerLink="/admin/assign-role" routerLinkActive="active">Assign Role</button>
+  <button class="nav-button" routerLink="/admin/add-language" routerLinkActive="active">Add Language</button>
+  <button class="nav-button logout-button" (click)="logout()">Logout</button>
 </nav>
 
 <hr>

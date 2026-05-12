@@ -1,12 +1,7 @@
-<!-- Visible to everyone -->
-<button *ngIf="isAdmin()" routerLink="/dashboard">Home</button>
-
-<!-- Only Admin -->
-<button *ngIf="isAdmin()" routerLink="/admin/assign-role">
-  Assign Role
-</button>
-<button *ngIf="isAdmin()" routerLink="/admin/add-language">
-  Add Language
-</button>
-<button (click)="logout()">Logout</button>
+<nav class="admin-nav">
+  <button class="nav-button" *ngIf="isAdmin()" routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</button>
+  <button class="nav-button" *ngIf="isAdmin()" routerLink="/admin/assign-role" routerLinkActive="active">Assign Role</button>
+  <button class="nav-button" *ngIf="isAdmin()" routerLink="/admin/add-language" routerLinkActive="active">Add Language</button>
+  <button class="nav-button logout-button" (click)="logout()">Logout</button>
+</nav>
 <router-outlet></router-outlet>

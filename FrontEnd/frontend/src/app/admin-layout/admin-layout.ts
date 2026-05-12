@@ -1,13 +1,14 @@
 import { Component } from '@angular/core';
-import { RouterOutlet, RouterLink } from '@angular/router'; // ✅ add this
+import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { RouterModule,Router } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../core/services/auth.service';
 @Component({
   selector: 'app-admin-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink], // ✅ add RouterOutlet + RouterLink
-  templateUrl: './admin-layout.html'
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
+  templateUrl: './admin-layout.html',
+  styleUrls: ['./admin-layout.css']
 })
 export class AdminLayoutComponent {
    constructor(private authService: AuthService, private router: Router) {}

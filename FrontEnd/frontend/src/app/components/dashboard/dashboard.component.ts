@@ -32,7 +32,11 @@ export class DashboardComponent implements OnInit {
   constructor(private translationService: TranslationService) {}
 
   ngOnInit(): void {
-    this.updateStats();
+    this.translationService.loadTranslations().subscribe({
+      next: () => this.updateStats(),
+      error: () => this.updateStats()
+    });
+
     this.translationService.translations$.subscribe(() => {
       this.updateStats();
     });

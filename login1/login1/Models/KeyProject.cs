@@ -1,0 +1,19 @@
+﻿namespace login1.Models
+{
+    using System.Text.Json.Serialization;
+
+    public class KeyProject
+    {
+        public int Id { get; set; }
+
+        public int KeyId { get; set; }
+
+        [JsonIgnore]
+        public TranslationKey Key { get; set; } = null!;
+
+        public int ProjectId { get; set; }
+
+        [JsonIgnore]
+        public Project Project { get; set; } = null!;
+    }
+}

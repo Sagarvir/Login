@@ -1,5 +1,5 @@
 export interface Translation {
-  id?: string;
+  id?: number | string;
   translationKey: string;
   originalText: string;
   translation: string;

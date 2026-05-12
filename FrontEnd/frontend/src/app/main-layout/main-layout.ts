@@ -1,12 +1,12 @@
 import { Component } from '@angular/core';
 import { AuthService } from '../core/services/auth.service';
 import { CommonModule } from '@angular/common';
-import { RouterModule,Router } from '@angular/router'  ;
+import { RouterModule, Router } from '@angular/router';
 @Component({
   selector: 'app-main-layout',
-  imports: [CommonModule,RouterModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './main-layout.html',
-  styleUrl: './main-layout.css',
+  styleUrls: ['./main-layout.css'],
 })
 export class MainLayout {
   constructor(private authService: AuthService,private router: Router) {}
