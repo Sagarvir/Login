@@ -12,8 +12,8 @@ using login1.Data;
 namespace login1.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260508094557_AddTranslationTables")]
-    partial class AddTranslationTables
+    [Migration("20260512091042_Intial")]
+    partial class Intial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -63,6 +63,13 @@ namespace login1.Migrations
                     b.Property<string>("KeyName")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("OriginalText")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -212,8 +219,6 @@ namespace login1.Migrations
                     b.Property<string>("LanguageCode")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
-
-                   
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");

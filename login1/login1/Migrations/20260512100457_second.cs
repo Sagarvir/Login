@@ -5,7 +5,7 @@
 namespace login1.Migrations
 {
     /// <inheritdoc />
-    public partial class RemoveStatus : Migration
+    public partial class second : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

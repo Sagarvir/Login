@@ -12,8 +12,8 @@ using login1.Data;
 namespace login1.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260512051008_RemoveStatus")]
-    partial class RemoveStatus
+    [Migration("20260512100457_second")]
+    partial class second
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

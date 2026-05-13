@@ -1,6 +1,11 @@
 namespace login1.Models.DTO
 {
-    public class AddTranslationRequest
+    public class BulkTranslationRequest
+    {
+        public List<TranslationValueItem> Translations { get; set; } = new();
+    }
+
+    public class TranslationValueItem
     {
         public int KeyId { get; set; }
 
