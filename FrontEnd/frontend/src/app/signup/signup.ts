@@ -62,17 +62,17 @@ export class SignupComponent {
           Swal.fire({
             icon: 'success',
             title: 'Signup Successful',
-            text: 'Welcome!',
-            timer: 1500,
+            text: 'Please log in with your credentials',
+            timer: 2000,
             showConfirmButton: false
           });
 
           this.isLoading.set(false);
 
-          // redirect to dashboard
+          // redirect to login
           setTimeout(() => {
-            this.router.navigate(['/dashboard']);
-          }, 1500);
+            this.router.navigate(['']);
+          }, 2000);
         },
         error: (err) => {
           console.error('Signup failed:', err);

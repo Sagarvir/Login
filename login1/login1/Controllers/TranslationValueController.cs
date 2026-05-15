@@ -1,13 +1,13 @@
-﻿    using global::login1.Data;
-    using global::login1.Models;
-    using login1.Data;
-    using login1.Models;
-    using login1.Models.DTO;
-    using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.EntityFrameworkCore;
+﻿using global::login1.Data;
+using global::login1.Models;
+using login1.Data;
+using login1.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using TranslationService.DTO;
 
-    namespace login1.Controllers
+namespace login1.Controllers
     {
         [ApiController]
         [Route("api/[controller]")]

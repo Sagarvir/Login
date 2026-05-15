@@ -1,9 +1,9 @@
 ﻿using login1.Data;
 using login1.Models;
-using login1.Models.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using TranslationService.DTO;
 
 namespace login1.Controllers
 {
