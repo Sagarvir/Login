@@ -72,5 +72,24 @@ namespace login1.Controllers
             });
         }
 
+        // ✅ Get All Translation Keys
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> GetAllKeys()
+        {
+            var keys = await _context.TranslationKeys
+                .Where(k => k.IsActive)
+                .OrderByDescending(k => k.CreatedAt)
+                .Select(k => new
+                {
+                    k.KeyName,
+                    k.OriginalText,
+                    k.ProjectId
+                })
+                .ToListAsync();
+
+            return Ok(keys);
+        }
+
     }
 }

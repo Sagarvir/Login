@@ -29,6 +29,16 @@ namespace login1.Controllers
         [HttpPost]
         public async Task<IActionResult> AddLanguage(Language language)
         {
+            // Ensure we don't try to insert an explicit identity value from the client.
+            // If client provided an Id, reset it so SQL Server will generate the identity value.
+            language.Id = 0;
+
+            // If Code wasn't provided, derive a simple code from the name (first two letters lowercased).
+            if (string.IsNullOrWhiteSpace(language.Code) && !string.IsNullOrWhiteSpace(language.Name))
+            {
+                language.Code = language.Name.Substring(0, Math.Min(2, language.Name.Length)).ToLowerInvariant();
+            }
+
             _context.Languages.Add(language);
             await _context.SaveChangesAsync();
             return Ok(language);

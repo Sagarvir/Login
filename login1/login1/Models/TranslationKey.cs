@@ -21,4 +21,7 @@ public class TranslationKey
 
     [JsonIgnore]
     public ICollection<KeyProject> KeyProjects { get; set; } = new List<KeyProject>();
+
+    // Additional Navigation properties
+    public List<TranslationValue> TranslationValues { get; set; } = new();
 }

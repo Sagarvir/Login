@@ -35,11 +35,11 @@ namespace login1.Data
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Language>().HasData(
-    new Language { Id = 1, Name = "English" },
-    new Language { Id = 2, Name = "Spanish" },
-    new Language { Id = 3, Name = "French" },
-    new Language { Id = 4, Name = "German" },
-    new Language { Id = 5, Name = "Japanese" }
+    new Language { Id = 1, Code = "en", Name = "English" },
+    new Language { Id = 2, Code = "es", Name = "Spanish" },
+    new Language { Id = 3, Code = "fr", Name = "French" },
+    new Language { Id = 4, Code = "de", Name = "German" },
+    new Language { Id = 5, Code = "ja", Name = "Japanese" }
 );
 
             // Configure User -> Language relationship
@@ -59,13 +59,13 @@ namespace login1.Data
             .IsUnique();
 
             modelBuilder.Entity<TranslationValue>()
-            .HasIndex(t => new { t.KeyId, t.LanguageCode })
+            .HasIndex(t => new { t.TranslationKeyId, t.LanguageCode })
             .IsUnique();
 
             modelBuilder.Entity<TranslationValue>()
-            .HasOne(t => t.Key)
-            .WithMany(k => k.Translations)
-            .HasForeignKey(t => t.KeyId)
+            .HasOne(t => t.TranslationKey)
+            .WithMany(k => k.TranslationValues)
+            .HasForeignKey(t => t.TranslationKeyId)
             .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<KeyProject>()
@@ -81,6 +81,33 @@ namespace login1.Data
             modelBuilder.Entity<KeyProject>()
             .HasIndex(kp => new { kp.KeyId, kp.ProjectId })
             .IsUnique();
+
+            modelBuilder.Entity<Language>(b =>
+            {
+                b.HasKey(l => l.Id);
+                b.Property(l => l.Code).IsRequired().HasMaxLength(10);
+                b.Property(l => l.Name).IsRequired();
+                b.HasIndex(l => l.Code).IsUnique();
+            });
+
+            modelBuilder.Entity<TranslationValue>(b =>
+            {
+                b.HasKey(t => t.Id);
+                b.Property(t => t.Value).IsRequired();
+
+                // Configure Relationship from TranslationValue.LanguageCode -> Language.Code
+                b.Property(t => t.LanguageCode).IsRequired().HasMaxLength(10);
+                b.HasOne(t => t.Language)
+                    .WithMany(l => l.TranslationValues)
+                    .HasForeignKey(t => t.LanguageCode)
+                    .HasPrincipalKey(l => l.Code)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                b.HasOne(t => t.TranslationKey)
+                    .WithMany(k => k.TranslationValues)
+                    .HasForeignKey(t => t.TranslationKeyId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
         }
     }
 }
