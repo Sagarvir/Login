@@ -1,4 +1,4 @@
-﻿namespace login1.Models.DTO
+﻿namespace TranslationService.DTO
 {
     public class CreateTranslationRequest
     {

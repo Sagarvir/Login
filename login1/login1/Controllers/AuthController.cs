@@ -3,271 +3,84 @@ using login1.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using TranslationService.Services.Interfaces;
 
 [ApiController]
 [Route("api/auth")]
 public class AuthController : ControllerBase
 {
-    [Authorize]   // 🔐 ONLY this endpoint is protected
-    [HttpGet("secure")]
-    public IActionResult Secure()
-    {
-        return Ok("This is protected data");
-    }
-    private readonly JwtService _jwtService;
-    private readonly AppDbContext _context;
+    private readonly IAuthService _service;
 
-    public AuthController(JwtService jwtService, AppDbContext context)
+    public AuthController(IAuthService service)
     {
-        _jwtService = jwtService;
-        _context = context;
+        _service = service;
     }
+
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterRequest request)
     {
-        // Try to be resilient to different frontends: if required fields are missing
-        // try parsing the raw JSON body case-insensitively (helps when property names differ).
-        if ((request == null) || string.IsNullOrWhiteSpace(request.EmployeeId) || string.IsNullOrWhiteSpace(request.Password)
-            || string.IsNullOrWhiteSpace(request.FirstName) || string.IsNullOrWhiteSpace(request.LastName))
+        try
         {
-            try
-            {
-                Request.EnableBuffering();
-                Request.Body.Position = 0;
-                using var doc = await System.Text.Json.JsonDocument.ParseAsync(Request.Body);
-                var root = doc.RootElement;
-                string? ReadAny(params string[] names)
-                {
-                    foreach (var n in names)
-                    {
-                        if (root.TryGetProperty(n, out var prop) && prop.ValueKind != System.Text.Json.JsonValueKind.Null)
-                            return prop.GetString();
-                        // also try lower/upper variants
-                        if (root.TryGetProperty(n.ToLower(), out prop) && prop.ValueKind != System.Text.Json.JsonValueKind.Null)
-                            return prop.GetString();
-                        if (root.TryGetProperty(n.ToUpper(), out prop) && prop.ValueKind != System.Text.Json.JsonValueKind.Null)
-                            return prop.GetString();
-                    }
-                    return null;
-                }
-
-                request ??= new RegisterRequest();
-                request.EmployeeId ??= ReadAny("employeeId", "EmployeeId", "username", "user", "empId", "employee_id");
-                request.Password ??= ReadAny("password", "Password", "pwd");
-                request.FirstName ??= ReadAny("firstName", "FirstName", "first_name", "fname");
-                request.LastName ??= ReadAny("lastName", "LastName", "last_name", "lname");
-                Request.Body.Position = 0;
-            }
-            catch
-            {
-                // ignore parsing errors and continue with model-bound values
-            }
+            var result = await _service.Register(request);
+            return Ok(result);
         }
-        // Support both JSON and form-posted submissions from different frontends.
-        if (request == null)
+        catch (Exception ex)
         {
-            if (Request.HasFormContentType)
-            {
-                var form = await Request.ReadFormAsync();
-                request = new RegisterRequest
-                {
-                    EmployeeId = form["employeeId"].FirstOrDefault() ?? form["EmployeeId"].FirstOrDefault(),
-                    Password = form["password"].FirstOrDefault() ?? form["Password"].FirstOrDefault(),
-                    FirstName = form["firstName"].FirstOrDefault() ?? form["FirstName"].FirstOrDefault(),
-                    LastName = form["lastName"].FirstOrDefault() ?? form["LastName"].FirstOrDefault(),
-                    PreferredLanguageId = int.TryParse(form["preferredLanguageId"].FirstOrDefault(), out var langId) ? langId : 0,
-                };
-            }
+            return BadRequest(ex.Message);
         }
-        // normalize and validate inputs (trim + lowercase employee id & language)
-        var emp = request?.EmployeeId?.Trim().ToLower();
-        var pwd = request?.Password?.Trim();
-        var fname = request?.FirstName?.Trim();
-        var lname = request?.LastName?.Trim();
-        var language = await _context.Languages
-    .FirstOrDefaultAsync(l => l.Id == request.PreferredLanguageId);
-
-        if (language == null)
-            return BadRequest("Invalid language selected");
-
-        var missing = new List<string>();
-        if (string.IsNullOrWhiteSpace(emp)) missing.Add("EmployeeId");
-        if (string.IsNullOrWhiteSpace(pwd)) missing.Add("Password");
-        if (string.IsNullOrWhiteSpace(fname)) missing.Add("FirstName");
-        if (string.IsNullOrWhiteSpace(lname)) missing.Add("LastName");
-
-        if (missing.Count > 0)
-            return BadRequest($"Missing required fields: {string.Join(", ", missing)}");
-
-        // Check if employee already exists (case-insensitive)
-        var exists = await _context.Users
-            .AnyAsync(u => u.EmployeeId.ToLower() == emp);
-
-        if (exists)
-            return BadRequest("Employee already registered");
-
-        // Get default role (Viewer)
-        var viewerRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name.ToLower() == "viewer");
-
-        if (viewerRole == null)
-            return BadRequest("Default role 'Viewer' not found. Please contact administrator.");
-
-        var user = new User
-        {
-            EmployeeId = emp,
-            FirstName = fname!,
-            LastName = lname!,
-            Password = BCrypt.Net.BCrypt.HashPassword(pwd!),
-            RoleId = viewerRole.Id, // Default role: Viewer
-            PreferredLanguageId = language.Id
-        };
-
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
-
-        return Ok("User registered successfully");
     }
+
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginRequest request)
     {
-        var user = await _context.Users
-            .Include(u => u.Role)
-            .Include(u => u.PreferredLanguage)
-            .FirstOrDefaultAsync(u => u.EmployeeId.ToLower() == request.EmployeeId.ToLower());
-
-        if (user == null)
-            return Unauthorized("Invalid employee ID");
-
-        // 🔐 Compare hashed password
-        bool isValid = BCrypt.Net.BCrypt.Verify(
-            request.Password,
-            user.Password
-        );
-
-        if (!isValid)
-            return Unauthorized("Invalid password");
-
-        // Validate that role is loaded
-        if (user.Role == null && user.RoleId.HasValue)
+        try
         {
-            return StatusCode(500, "Error: User role is not configured properly. Please contact administrator.");
+            return Ok(await _service.Login(request));
         }
-
-        var accessToken = _jwtService.GenerateToken(user);
-        var refreshToken = _jwtService.GenerateRefreshToken();
-        var refreshTokenHash = _jwtService.HashToken(refreshToken);
-
-        _context.RefreshTokens.Add(new RefreshToken
+        catch (Exception ex)
         {
-            UserId = user.Id,
-            TokenHash = refreshTokenHash,
-            ExpiresAtUtc = _jwtService.GetRefreshTokenExpiryUtc(),
-            CreatedAtUtc = DateTime.UtcNow,
-            CreatedByIp = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown"
-        });
-
-        await _context.SaveChangesAsync();
-
-        return Ok(new AuthResponse
-        {
-            AccessToken = accessToken,
-            RefreshToken = refreshToken,
-            AccessTokenExpiresAtUtc = _jwtService.GetAccessTokenExpiryUtc()
-        });
+            return Unauthorized(ex.Message);
+        }
     }
+
     [Authorize(Roles = "Admin")]
     [HttpPut("assign-role")]
     public async Task<IActionResult> AssignRole(AssignRoleRequest request)
     {
-        // Validate input
-        if (string.IsNullOrWhiteSpace(request.EmployeeId) || string.IsNullOrWhiteSpace(request.RoleName))
-            return BadRequest("EmployeeId and RoleName are required");
-
-        // Find user by EmployeeId
-        var user = await _context.Users
-            .Include(u => u.Role)
-            .Include(u => u.PreferredLanguage)
-            .FirstOrDefaultAsync(u => u.EmployeeId.ToLower() == request.EmployeeId.ToLower());
-
-        if (user == null)
-            return NotFound($"User with EmployeeId '{request.EmployeeId}' not found");
-
-        // Find role by name
-        var role = await _context.Roles.FirstOrDefaultAsync(r => r.Name.ToLower() == request.RoleName.ToLower());
-
-        if (role == null)
-            return NotFound($"Role '{request.RoleName}' not found");
-
-        // Assign role
-        user.RoleId = role.Id;
-        await _context.SaveChangesAsync();
-
-        return Ok(new
+        try
         {
-            message = "Role assigned successfully",
-            employeeId = user.EmployeeId,
-            firstName = user.FirstName,
-            lastName = user.LastName,
-            assignedRole = role.Name
-        });
+            return Ok(await _service.AssignRole(request));
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
+
     [HttpPost("refresh")]
     public async Task<IActionResult> Refresh(RefreshRequest request)
     {
-        var tokenHash = _jwtService.HashToken(request.RefreshToken);
-
-        var storedToken = await _context.RefreshTokens
-            .Include(rt => rt.User)
-            .FirstOrDefaultAsync(rt => rt.TokenHash == tokenHash);
-
-        if (storedToken == null)
-            return Unauthorized("Invalid refresh token");
-
-        if (storedToken.RevokedAtUtc != null || storedToken.ExpiresAtUtc <= DateTime.UtcNow)
-            return Unauthorized("Refresh token is no longer active");
-
-        var newRefreshToken = _jwtService.GenerateRefreshToken();
-        var newRefreshTokenHash = _jwtService.HashToken(newRefreshToken);
-
-        storedToken.RevokedAtUtc = DateTime.UtcNow;
-        storedToken.ReplacedByTokenHash = newRefreshTokenHash;
-
-        _context.RefreshTokens.Add(new RefreshToken
+        try
         {
-            UserId = storedToken.UserId,
-            TokenHash = newRefreshTokenHash,
-            ExpiresAtUtc = _jwtService.GetRefreshTokenExpiryUtc(),
-            CreatedAtUtc = DateTime.UtcNow,
-            CreatedByIp = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown"
-        });
-
-        var accessToken = _jwtService.GenerateToken(storedToken.User);
-        await _context.SaveChangesAsync();
-
-        return Ok(new AuthResponse
+            var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            return Ok(await _service.Refresh(request, ip));
+        }
+        catch (Exception ex)
         {
-            AccessToken = accessToken,
-            RefreshToken = newRefreshToken,
-            AccessTokenExpiresAtUtc = _jwtService.GetAccessTokenExpiryUtc()
-        });
+            return Unauthorized(ex.Message);
+        }
     }
 
     [HttpPost("revoke")]
     public async Task<IActionResult> Revoke(RefreshRequest request)
     {
-        var tokenHash = _jwtService.HashToken(request.RefreshToken);
-        var storedToken = await _context.RefreshTokens
-            .FirstOrDefaultAsync(rt => rt.TokenHash == tokenHash);
-
-        if (storedToken == null)
-            return NotFound("Refresh token not found");
-
-        if (storedToken.RevokedAtUtc != null)
-            return BadRequest("Refresh token already revoked");
-
-        storedToken.RevokedAtUtc = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
-
-        return Ok("Refresh token revoked");
+        try
+        {
+            return Ok(await _service.Revoke(request));
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 }
