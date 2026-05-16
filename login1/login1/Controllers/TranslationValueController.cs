@@ -4,7 +4,7 @@ using global::login1.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using TranslationService.DTO;
+using TranslationService.DTO.Translation;
 
 namespace login1.Controllers
     {

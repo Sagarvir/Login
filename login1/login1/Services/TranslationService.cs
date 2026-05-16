@@ -1,6 +1,112 @@
-﻿namespace TranslationService.Services
+﻿using TranslationService.DTO.Translation;
+using TranslationService.Repositories.Interfaces;
+using TranslationService.Services.Interfaces;
+
+namespace TranslationService.Services
 {
-    public class TranslationService
+    public class TranslationService : ITranslationService
     {
+        private readonly ITranslationRepository _repo;
+
+        public TranslationService(ITranslationRepository repo)
+        {
+            _repo = repo;
+        }
+
+        public async Task<object> CreateKey(CreateKeyRequest request, string empId)
+        {
+            if (string.IsNullOrEmpty(empId))
+                throw new Exception("Invalid token.");
+
+            var keyName = request.KeyName.Trim().ToUpper();
+
+            if (string.IsNullOrWhiteSpace(request.OriginalText))
+                throw new Exception("Original text is required.");
+
+            if (request.ProjectId <= 0)
+                throw new Exception("Valid ProjectId is required.");
+
+            var exists = await _repo.KeyExists(keyName, request.ProjectId);
+            if (exists)
+                throw new Exception("Key already exists in this project.");
+
+            var key = new TranslationKey
+            {
+                KeyName = keyName,
+                OriginalText = request.OriginalText,
+                ProjectId = request.ProjectId,
+                CreatedByEmpId = empId,
+                CreatedAt = DateTime.UtcNow,
+                IsActive = true
+            };
+
+            await _repo.AddKey(key);
+
+            return new
+            {
+                message = "Key created successfully.",
+                keyId = key.Id
+            };
+        }
+
+        public async Task<object> CreateKeys(CreateKeysRequest request, string empId)
+        {
+            if (string.IsNullOrEmpty(empId))
+                throw new Exception("Invalid token.");
+
+            if (request.Keys == null || request.Keys.Count == 0)
+                throw new Exception("At least one key is required.");
+
+            var normalized = request.Keys.Select(k => new NormalizedKeyDto
+            {
+                KeyName = k.KeyName?.Trim().ToUpper(),
+                OriginalText = k.OriginalText?.Trim(),
+                ProjectId = k.ProjectId
+            }).ToList();
+
+            if (normalized.Any(k => string.IsNullOrWhiteSpace(k.KeyName)))
+                throw new Exception("KeyName is required.");
+
+            if (normalized.Any(k => string.IsNullOrWhiteSpace(k.OriginalText)))
+                throw new Exception("Original text is required.");
+
+            if (normalized.Any(k => k.ProjectId <= 0))
+                throw new Exception("Valid ProjectId required.");
+
+            var duplicates = await _repo.GetExistingKeys(normalized);
+
+            if (duplicates.Any())
+                throw new Exception("Some keys already exist.");
+
+            var keys = normalized.Select(k => new TranslationKey
+            {
+                KeyName = k.KeyName!,
+                OriginalText = k.OriginalText!,
+                ProjectId = k.ProjectId,
+                CreatedByEmpId = empId,
+                CreatedAt = DateTime.UtcNow,
+                IsActive = true
+            }).ToList();
+
+            await _repo.AddKeys(keys);
+
+            return new
+            {
+                message = "Keys created successfully.",
+                keyIds = keys.Select(k => k.Id)
+            };
+        }
+
+        public async Task<object> GetAllKeys()
+        {
+            var keys = await _repo.GetAllKeys();
+
+            return keys.Select(k => new
+            {
+                k.KeyName,
+                k.OriginalText,
+                k.ProjectId
+            });
+        }
     }
 }

@@ -1,4 +1,4 @@
-namespace TranslationService.DTO
+namespace TranslationService.DTO.Translation
 {
     public class CreateKeyRequest
     {

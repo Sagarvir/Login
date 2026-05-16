@@ -1,6 +1,11 @@
-﻿namespace TranslationService.Services.Interfaces
+﻿using TranslationService.DTO.Translation;
+
+namespace TranslationService.Services.Interfaces
 {
-    public class ITranslationService
+    public interface ITranslationService
     {
+        Task<object> CreateKey(CreateKeyRequest request, string empId);
+        Task<object> CreateKeys(CreateKeysRequest request, string empId);
+        Task<object> GetAllKeys();
     }
 }

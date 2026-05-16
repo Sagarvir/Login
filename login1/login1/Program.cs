@@ -17,6 +17,8 @@ builder.Services.AddSingleton<JwtService>();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ITranslationService, TranslationService.Services.TranslationService>();
+builder.Services.AddScoped<ITranslationRepository, TranslationRepository>();
 var jwtKey = builder.Configuration["Jwt:Key"]
     ?? throw new InvalidOperationException("Jwt:Key is missing in configuration.");
 
