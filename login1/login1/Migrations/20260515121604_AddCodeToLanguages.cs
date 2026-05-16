@@ -5,18 +5,18 @@
 namespace login1.Migrations
 {
     /// <inheritdoc />
-    public partial class AddOriginalTextAndProjectId : Migration
+    public partial class AddCodeToLanguages : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // ❌ Do nothing because columns already exist
+
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            // ❌ Do nothing (avoid dropping real columns accidentally)
+
         }
     }
 }

@@ -1,7 +1,6 @@
 ﻿using global::login1.Data;
 using global::login1.Models;
-using login1.Data;
-using login1.Models;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;

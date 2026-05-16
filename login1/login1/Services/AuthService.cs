@@ -6,10 +6,10 @@ namespace TranslationService.Services
 {
     public class AuthService : IAuthService
     {
-        private readonly IAuthRepository _repo;
+        private readonly IUserRepository _repo;
         private readonly JwtService _jwtService;
 
-        public AuthService(IAuthRepository repo, JwtService jwtService)
+        public AuthService(IUserRepository repo, JwtService jwtService)
         {
             _repo = repo;
             _jwtService = jwtService;

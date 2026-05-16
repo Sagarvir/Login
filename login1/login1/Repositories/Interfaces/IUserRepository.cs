@@ -2,7 +2,7 @@
 
 namespace TranslationService.Repositories.Interfaces
 {
-    public interface IAuthRepository
+    public interface IUserRepository
     {
         Task<bool> UserExists(string employeeId);
         Task<User?> GetUserByEmployeeId(string employeeId);

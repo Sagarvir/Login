@@ -12,8 +12,8 @@ using login1.Data;
 namespace login1.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260513054031_AddLanguageFk")]
-    partial class AddLanguageFk
+    [Migration("20260515121604_AddCodeToLanguages")]
+    partial class AddCodeToLanguages
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -237,9 +237,6 @@ namespace login1.Migrations
                     b.Property<int>("TranslationKeyId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("TranslationKeyId1")
-                        .HasColumnType("int");
-
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -253,8 +250,6 @@ namespace login1.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("LanguageCode");
-
-                    b.HasIndex("TranslationKeyId1");
 
                     b.HasIndex("TranslationKeyId", "LanguageCode")
                         .IsUnique();
@@ -341,14 +336,10 @@ namespace login1.Migrations
                         .IsRequired();
 
                     b.HasOne("TranslationKey", "TranslationKey")
-                        .WithMany("TranslationValues")
+                        .WithMany("Translations")
                         .HasForeignKey("TranslationKeyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("TranslationKey", null)
-                        .WithMany("Translations")
-                        .HasForeignKey("TranslationKeyId1");
 
                     b.Navigation("Language");
 
@@ -374,8 +365,6 @@ namespace login1.Migrations
             modelBuilder.Entity("TranslationKey", b =>
                 {
                     b.Navigation("KeyProjects");
-
-                    b.Navigation("TranslationValues");
 
                     b.Navigation("Translations");
                 });

@@ -5,11 +5,11 @@ using TranslationService.Repositories.Interfaces;
 
 namespace TranslationService.Repositories
 {
-    public class AuthRepository : IAuthRepository
+    public class UserRepository : IUserRepository
     {
         private readonly AppDbContext _context;
 
-        public AuthRepository(AppDbContext context)
+        public UserRepository(AppDbContext context)
         {
             _context = context;
         }

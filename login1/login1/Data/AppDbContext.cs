@@ -64,7 +64,7 @@ namespace login1.Data
 
             modelBuilder.Entity<TranslationValue>()
             .HasOne(t => t.TranslationKey)
-            .WithMany(k => k.TranslationValues)
+            .WithMany(k => k.Translations)
             .HasForeignKey(t => t.TranslationKeyId)
             .OnDelete(DeleteBehavior.Cascade);
 
@@ -89,6 +89,10 @@ namespace login1.Data
                 b.Property(l => l.Name).IsRequired();
                 b.HasIndex(l => l.Code).IsUnique();
             });
+            modelBuilder.Entity<TranslationValue>()
+            .HasOne(tv => tv.TranslationKey)
+            .WithMany(tk => tk.Translations)
+            .HasForeignKey(tv => tv.TranslationKeyId);
 
             modelBuilder.Entity<TranslationValue>(b =>
             {
@@ -104,9 +108,10 @@ namespace login1.Data
                     .OnDelete(DeleteBehavior.Restrict);
 
                 b.HasOne(t => t.TranslationKey)
-                    .WithMany(k => k.TranslationValues)
+                    .WithMany(k => k.Translations)
                     .HasForeignKey(t => t.TranslationKeyId)
                     .OnDelete(DeleteBehavior.Cascade);
+                
             });
         }
     }
