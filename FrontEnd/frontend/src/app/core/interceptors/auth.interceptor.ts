@@ -21,12 +21,19 @@ export class AuthInterceptor implements HttpInterceptor {
     let authReq = req;
     if (token) {
       authReq = this.addToken(req, token);
+      if (req.url.includes('TranslationKey')) {
+        console.log('AuthInterceptor: Adding token for TranslationKey request', token);
+      }
+    } else {
+      if (req.url.includes('TranslationKey')) {
+        console.log('AuthInterceptor: No token available for TranslationKey request');
+      }
     }
 
     return next.handle(authReq).pipe(
       catchError((error: HttpErrorResponse) => {
 
-        if (error.status === 401) {
+        if (error.status === 401 || error.status === 403) {
           return this.handle401Error(authReq, next);
         }
 

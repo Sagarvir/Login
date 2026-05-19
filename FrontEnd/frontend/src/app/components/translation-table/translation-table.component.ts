@@ -59,14 +59,21 @@ export class TranslationTableComponent implements OnInit, AfterViewInit {
   ) {}
 
   ngOnInit(): void {
+
+    // ✅ Load data from backend
     this.translationService.loadTranslations().subscribe({
+      next: () => {
+        console.log('Translations loaded successfully');
+      },
       error: (err) => {
         console.error('Failed to load translations in table', err);
       }
     });
 
+    // ✅ Subscribe to data
     this.translationService.getTranslations().subscribe((translations) => {
       this.dataSource.data = translations;
+
       if (this.paginator) {
         this.dataSource.paginator = this.paginator;
       }
@@ -130,14 +137,17 @@ export class TranslationTableComponent implements OnInit, AfterViewInit {
       }
 
       const newTranslation: Translation = {
-        translationKey: result.translationKey || '',
-        originalText: result.originalText || '',
-        translation: '',
-        tags: result.tags || '',
-      };
+  translationKey: result.translationKey || '',
+  originalText: result.originalText || '',
+  translation: '',
+  tags: result.tags || '',
+  client: '',
+  project: ''
+};
 
       this.translationService.addTranslation(newTranslation).subscribe({
         next: () => {
+          this.translationService.loadTranslations().subscribe();
           this.snackBar.open('New translation added', 'Close', {
             duration: 2000,
           });

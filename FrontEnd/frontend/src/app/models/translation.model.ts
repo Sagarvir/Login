@@ -3,9 +3,10 @@ export interface Translation {
   translationKey: string;
   originalText: string;
   translation: string;
-  tags: string;
+  tags?: string;
   client?: string;
   project?: string;
+  projectId?: number;
 }
 
 export interface DashboardStats {

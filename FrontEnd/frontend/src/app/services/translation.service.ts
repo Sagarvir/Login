@@ -8,28 +8,40 @@ import { Translation, DashboardStats } from '../models/translation.model';
 })
 export class TranslationService {
   private readonly translationKeyUrl = 'https://localhost:7199/api/TranslationKey';
+  private readonly translationValueUrl = 'https://localhost:7199/api/TranslationValue';
+  private readonly storageKey = 'translationManager.translations';
   private translations: Translation[] = [];
 
   private translationsSubject = new BehaviorSubject<Translation[]>(
-    this.translations
+    this.loadCachedTranslations()
   );
   public translations$ = this.translationsSubject.asObservable();
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+    this.translations = this.loadCachedTranslations();
+  }
 
-  loadTranslations(): Observable<Translation[]> {
+  loadTranslations(languageCode = 'EN'): Observable<Translation[]> {
+    const params = { languageCode };
+
     return this.http.get<any>(this.translationKeyUrl).pipe(
       tap((response) => {
+        console.log('TranslationValue API response', response);
         const items = Array.isArray(response)
           ? response
           : response?.items ?? response?.data ?? response?.results ?? [];
 
-        const translations = (items || []).map((item: any) => this.mapApiTranslationKey(item));
+        const cached = this.loadCachedTranslations();
+        const backendTranslations = (items || [])
+          .map((item: any) => this.mapApiTranslationKey(item))
+          .map((item: Translation) => this.mergeWithCachedTranslation(item, cached));
+
+        const translations = this.combineWithCachedTranslations(backendTranslations, cached);
         this.setTranslations(translations);
       }),
       map(() => this.translations),
       catchError((error) => {
-        console.error('Failed to load translation keys', error);
+        console.error('Failed to load translation values', error);
         this.setTranslations([]);
         return of([] as Translation[]);
       })
@@ -42,6 +54,7 @@ export class TranslationService {
 
   setTranslations(translations: Translation[]): void {
     this.translations = translations || [];
+    this.saveCachedTranslations(this.translations);
     this.translationsSubject.next([...this.translations]);
   }
 
@@ -58,36 +71,103 @@ export class TranslationService {
       ? nestedValues[0].value ?? nestedValues[0].translation ?? nestedValues[0].text ?? ''
       : '';
 
+   return {
+  id: item.id,
+  translationKey: item.keyName,
+  originalText: item.originalText,
+  translation: '',
+  tags: item.projectId?.toString() || '',
+  client: '',
+  project: item.projectId?.toString() || ''
+};
+  }
+
+  private mergeWithCachedTranslation(item: Translation, cached: Translation[]): Translation {
+    const existing = cached.find((cachedItem) => {
+      return (
+        (item.id != null && cachedItem.id != null && cachedItem.id === item.id) ||
+        (item.translationKey && cachedItem.translationKey === item.translationKey)
+      );
+    });
+
+    if (!existing) {
+      return item;
+    }
+
     return {
-      id: item.id ?? item.keyId ?? item.translationKeyId ?? item.KeyId ?? item.KeyID,
-      translationKey: item.keyName ?? item.KeyName ?? item.key ?? item.name ?? item.Key ?? '',
-      originalText: item.originalText ?? item.OriginalText ?? item.value ?? item.text ?? item.Name ?? '',
-      translation: item.translation ?? item.Translation ?? item.translationValue ?? item.TranslationValue ?? item.value ?? nestedTranslation ?? '',
-      tags: item.tags ?? item.Tags ?? item.tag ?? item.Tag ?? '',
-      client: item.client ?? item.Client ?? item.projectClient ?? '',
-      project: item.project ?? item.Project ?? item.projectId?.toString() ?? item.ProjectId?.toString() ?? ''
+      ...existing,
+      ...item,
+      translationKey: item.translationKey || existing.translationKey,
+      originalText: item.originalText || existing.originalText,
+      translation: item.translation || existing.translation,
+      tags: item.tags || existing.tags,
+      client: item.client || existing.client,
+      project: item.project || existing.project,
     };
+  }
+
+  private combineWithCachedTranslations(backend: Translation[], cached: Translation[]): Translation[] {
+    const merged = backend.map((item) => this.mergeWithCachedTranslation(item, cached));
+
+    cached.forEach((cachedItem) => {
+      const exists = merged.some((item) => {
+        return (
+          (item.id != null && cachedItem.id != null && item.id === cachedItem.id) ||
+          (item.translationKey && item.translationKey === cachedItem.translationKey)
+        );
+      });
+
+      if (!exists) {
+        merged.push(cachedItem);
+      }
+    });
+
+    return merged;
+  }
+
+  private loadCachedTranslations(): Translation[] {
+    if (typeof localStorage === 'undefined') {
+      return [];
+    }
+
+    try {
+      const stored = localStorage.getItem(this.storageKey);
+      return stored ? (JSON.parse(stored) as Translation[]) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private saveCachedTranslations(translations: Translation[]): void {
+    if (typeof localStorage === 'undefined') {
+      return;
+    }
+
+    try {
+      localStorage.setItem(this.storageKey, JSON.stringify(translations));
+    } catch {
+      // ignore storage errors
+    }
   }
 
   addTranslation(translation: Translation): Observable<Translation> {
     const body = {
-      KeyName: translation.translationKey,
+      keyName: translation.translationKey,
       originalText: translation.originalText,
-      projectId: 1
+      projectId: translation.tags ? Number(translation.tags) : 1
     };
 
     console.log('POST TranslationKey body', body);
 
     return this.http.post<any>(this.translationKeyUrl, body).pipe(
-      tap((created) => {
-        const item = this.mapApiTranslationKey(created);
-        this.translations.push(item);
-        this.translationsSubject.next([...this.translations]);
-        console.log('POST TranslationKey response', created);
-        this.loadTranslations().subscribe({
-          error: (err) => console.error('Failed to refresh translations after add', err)
-        });
-      }),
+      tap(() => {
+
+  // ✅ Reload fresh data from backend
+  this.loadTranslations().subscribe();
+
+  console.log('Translation added successfully');
+
+}),
       catchError((error) => {
         console.error('Failed to add translation key', error);
         return throwError(() => error);
@@ -100,10 +180,11 @@ export class TranslationService {
       return this.http.put<Translation>(`${this.translationKeyUrl}/${translation.id}`, {
         KeyName: translation.translationKey,
         originalText: translation.originalText,
-        projectId: 1
+        projectId: translation.tags ? Number(translation.tags) : 1
       }).pipe(
         tap((updated) => {
           this.translations[index] = this.mapApiTranslationKey(updated);
+          this.saveCachedTranslations(this.translations);
           this.translationsSubject.next([...this.translations]);
         }),
         catchError((error) => {
@@ -123,6 +204,7 @@ export class TranslationService {
       return this.http.delete<void>(`${this.translationKeyUrl}/${translation.id}`).pipe(
         tap(() => {
           this.translations.splice(index, 1);
+          this.saveCachedTranslations(this.translations);
           this.translationsSubject.next([...this.translations]);
         }),
         catchError((error) => {
