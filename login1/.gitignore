@@ -5,8 +5,8 @@
 
 # dotenv files
 .env
-login1/properties/launchSettings.json
 login1/appsettings.Development.json
+login1/Properties/launchSettings.json
 # User-specific files
 *.rsuser
 *.suo
