@@ -1,4 +1,5 @@
 ﻿using TranslationService.DTO.Translation;
+using TranslationService.Repositories;
 using TranslationService.Repositories.Interfaces;
 using TranslationService.Services.Interfaces;
 
@@ -95,6 +96,40 @@ namespace TranslationService.Services
                 message = "Keys created successfully.",
                 keyIds = keys.Select(k => k.Id)
             };
+        }
+        public async Task<string> UpsertTranslationsAsync(BulkTranslationRequest request, string empId)
+        {
+            if (request.Translations == null || request.Translations.Count == 0)
+                throw new Exception("At least one translation is required.");
+
+            var normalizedItems = request.Translations
+                .Select(t => new
+                {
+                    t.KeyId,
+                    LanguageCode = t.LanguageCode.Trim().ToUpper(),
+                    t.Value
+                })
+                .Cast<dynamic>()
+                .ToList();
+
+            if (normalizedItems.Any(t => t.KeyId <= 0))
+                throw new Exception("Invalid KeyId.");
+
+            if (normalizedItems.Any(t => string.IsNullOrWhiteSpace(t.LanguageCode)))
+                throw new Exception("LanguageCode required.");
+
+            var keyIds = normalizedItems.Select(t => (int)t.KeyId).Distinct().ToList();
+
+            var validKeys = await _repo.GetValidKeyIdsAsync(keyIds);
+
+            if (validKeys.Count != keyIds.Count)
+                throw new Exception("Some keys not found.");
+
+            var existing = await _repo.GetExistingTranslationsAsync(keyIds);
+
+            await _repo.UpsertBulkAsync(normalizedItems, existing, empId);
+
+            return "Translations saved successfully.";
         }
 
         public async Task<object> GetAllKeys()

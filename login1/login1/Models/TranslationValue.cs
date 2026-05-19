@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
 namespace login1.Models
@@ -11,6 +12,8 @@ namespace login1.Models
         public int TranslationKeyId { get; set; }
 
         // Backwards-compatible alias used across the codebase
+        // ⚠️ This property is NOT mapped to database - it's just a convenience wrapper
+        [NotMapped]
         public int KeyId
         {
             get => TranslationKeyId;

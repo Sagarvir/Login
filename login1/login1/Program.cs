@@ -7,7 +7,6 @@ using System.Text;
 using System.Text.Json;
 using TranslationService.Repositories;
 using TranslationService.Repositories.Interfaces;
-using TranslationService.Services;
 using TranslationService.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,10 +14,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddSingleton<JwtService>();
 
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<ITranslationService, TranslationService.Services.TranslationService>();
-builder.Services.AddScoped<ITranslationRepository, TranslationRepository>();
+builder.Services.AddScoped<IAuthService, TranslationService.Services.AuthService>();
+builder.Services.AddScoped<IUserRepository, TranslationService.Repositories.UserRepository>();
+builder.Services.AddScoped<ITranslationService, global::TranslationService.Services.TranslationService>();
+builder.Services.AddScoped<ITranslationRepository, TranslationService.Repositories.TranslationRepository>();
 var jwtKey = builder.Configuration["Jwt:Key"]
     ?? throw new InvalidOperationException("Jwt:Key is missing in configuration.");
 

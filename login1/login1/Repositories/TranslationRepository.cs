@@ -57,9 +57,66 @@ namespace TranslationService.Repositories
             return existing.Select(e => (e.KeyName, e.ProjectId)).ToList();
         }
 
-        public Task<List<(string KeyName, int ProjectId)>> GetExistingKeys(List<NormalizedKeyDto> keys)
+        public async Task<List<(string KeyName, int ProjectId)>> GetExistingKeys(List<NormalizedKeyDto> keys)
         {
-            throw new NotImplementedException();
+            var projectIds = keys.Select(k => k.ProjectId).Distinct().ToList();
+            var keyNames = keys.Select(k => k.KeyName).Distinct().ToList();
+
+            var existing = await _context.TranslationKeys
+                .Where(k => k.IsActive &&
+                            projectIds.Contains(k.ProjectId) &&
+                            keyNames.Contains(k.KeyName))
+                .Select(k => new { k.KeyName, k.ProjectId })
+                .ToListAsync();
+
+            return existing.Select(e => (e.KeyName, e.ProjectId)).ToList();
+        }
+        public async Task<List<int>> GetValidKeyIdsAsync(List<int> keyIds)
+        {
+            return await _context.TranslationKeys
+                .Where(k => k.IsActive && keyIds.Contains(k.Id))
+                .Select(k => k.Id)
+                .ToListAsync();
+        }
+
+        public async Task<List<TranslationValue>> GetExistingTranslationsAsync(List<int> keyIds)
+        {
+            return await _context.TranslationValues
+                .Where(t => keyIds.Contains(t.TranslationKeyId))
+                .ToListAsync();
+        }
+
+        public async Task UpsertBulkAsync(
+            List<dynamic> items,
+            List<TranslationValue> existing,
+            string empId)
+        {
+            foreach (var item in items)
+            {
+                var found = existing.FirstOrDefault(t =>
+                    t.TranslationKeyId == item.KeyId &&
+                    t.LanguageCode == item.LanguageCode);
+
+                if (found != null)
+                {
+                    found.Value = item.Value;
+                    found.UpdatedByEmpId = empId;
+                    found.UpdatedAt = DateTime.UtcNow;
+                }
+                else
+                {
+                    _context.TranslationValues.Add(new TranslationValue
+                    {
+                        TranslationKeyId = item.KeyId,
+                        LanguageCode = item.LanguageCode,
+                        Value = item.Value,
+                        UpdatedByEmpId = empId,
+                        UpdatedAt = DateTime.UtcNow
+                    });
+                }
+            }
+
+            await _context.SaveChangesAsync();
         }
     }
 }

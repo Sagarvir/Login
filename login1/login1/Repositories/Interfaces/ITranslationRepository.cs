@@ -1,4 +1,5 @@
-﻿using TranslationService.DTO.Translation;
+﻿using login1.Models;
+using TranslationService.DTO.Translation;
 
 namespace TranslationService.Repositories.Interfaces
 {
@@ -9,5 +10,11 @@ namespace TranslationService.Repositories.Interfaces
         Task AddKeys(List<TranslationKey> keys);
         Task<List<TranslationKey>> GetAllKeys();
         Task<List<(string KeyName, int ProjectId)>> GetExistingKeys(List<NormalizedKeyDto> keys);
+        Task<List<int>> GetValidKeyIdsAsync(List<int> keyIds);
+        Task<List<TranslationValue>> GetExistingTranslationsAsync(List<int> keyIds);
+        Task UpsertBulkAsync(
+            List<dynamic> items,
+            List<TranslationValue> existing,
+            string empId);
     }
 }
