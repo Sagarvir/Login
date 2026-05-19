@@ -1,4 +1,4 @@
-﻿using login1.Data;
+using login1.Data;
 using login1.Models;
 using TranslationService.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -116,6 +116,30 @@ namespace TranslationService.Repositories
                 }
             }
 
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<TranslationKey?> GetKeyByIdAsync(int id)
+        {
+            return await _context.TranslationKeys
+                .Include(k => k.Translations)
+                .FirstOrDefaultAsync(k => k.Id == id && k.IsActive);
+        }
+
+        public async Task DeleteValuesAsync(List<TranslationValue> values)
+        {
+            if (values.Count == 0)
+            {
+                return;
+            }
+
+            _context.TranslationValues.RemoveRange(values);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteKeyAsync(TranslationKey key)
+        {
+            _context.TranslationKeys.Remove(key);
             await _context.SaveChangesAsync();
         }
     }

@@ -1,4 +1,4 @@
-﻿using TranslationService.DTO.Translation;
+using TranslationService.DTO.Translation;
 using TranslationService.Repositories;
 using TranslationService.Repositories.Interfaces;
 using TranslationService.Services.Interfaces;
@@ -142,6 +142,33 @@ namespace TranslationService.Services
                 k.OriginalText,
                 k.ProjectId
             });
+        }
+
+        public async Task DeleteKey(int id, string empId)
+        {
+            if (string.IsNullOrEmpty(empId))
+            {
+                throw new Exception("Invalid token.");
+            }
+
+            if (id <= 0)
+            {
+                throw new Exception("Invalid key id.");
+            }
+
+            var key = await _repo.GetKeyByIdAsync(id);
+
+            if (key == null)
+            {
+                throw new Exception("Key not found.");
+            }
+
+            if (key.Translations.Count > 0)
+            {
+                await _repo.DeleteValuesAsync(key.Translations.ToList());
+            }
+
+            await _repo.DeleteKeyAsync(key);
         }
     }
 }

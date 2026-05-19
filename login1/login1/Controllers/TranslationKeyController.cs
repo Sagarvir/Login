@@ -1,4 +1,4 @@
-﻿using login1.Data;
+using login1.Data;
 using login1.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -59,6 +59,21 @@ namespace login1.Controllers
         {
             var result = await _service.GetAllKeys();
             return Ok(result);
+        }
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Creator,Admin")]
+        public async Task<IActionResult> DeleteKey(int id)
+        {
+            try
+            {
+                var empId = User.FindFirst("empId")?.Value;
+                await _service.DeleteKey(id, empId);
+                return Ok("Key deleted successfully.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }

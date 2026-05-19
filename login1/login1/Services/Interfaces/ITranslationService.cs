@@ -1,4 +1,4 @@
-﻿using TranslationService.DTO.Translation;
+using TranslationService.DTO.Translation;
 
 namespace TranslationService.Services.Interfaces
 {
@@ -8,5 +8,6 @@ namespace TranslationService.Services.Interfaces
         Task<object> CreateKeys(CreateKeysRequest request, string empId);
         Task<object> GetAllKeys();
         Task<string> UpsertTranslationsAsync(BulkTranslationRequest request, string empId);
+        Task DeleteKey(int id, string empId);
     }
 }

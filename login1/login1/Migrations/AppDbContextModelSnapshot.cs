@@ -8,7 +8,7 @@ using login1.Data;
 
 #nullable disable
 
-namespace login1.Migrations
+namespace TranslationService.Migrations
 {
     [DbContext(typeof(AppDbContext))]
     partial class AppDbContextModelSnapshot : ModelSnapshot
@@ -222,9 +222,6 @@ namespace login1.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("KeyId")
-                        .HasColumnType("int");
 
                     b.Property<string>("LanguageCode")
                         .IsRequired()

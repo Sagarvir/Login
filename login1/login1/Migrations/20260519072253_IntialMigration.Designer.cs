@@ -9,11 +9,11 @@ using login1.Data;
 
 #nullable disable
 
-namespace login1.Migrations
+namespace TranslationService.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260512051008_RemoveStatus")]
-    partial class RemoveStatus
+    [Migration("20260519072253_IntialMigration")]
+    partial class IntialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -111,11 +111,19 @@ namespace login1.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
 
                     b.ToTable("Languages");
 
@@ -123,26 +131,31 @@ namespace login1.Migrations
                         new
                         {
                             Id = 1,
+                            Code = "en",
                             Name = "English"
                         },
                         new
                         {
                             Id = 2,
+                            Code = "es",
                             Name = "Spanish"
                         },
                         new
                         {
                             Id = 3,
+                            Code = "fr",
                             Name = "French"
                         },
                         new
                         {
                             Id = 4,
+                            Code = "de",
                             Name = "German"
                         },
                         new
                         {
                             Id = 5,
+                            Code = "ja",
                             Name = "Japanese"
                         });
                 });
@@ -213,18 +226,18 @@ namespace login1.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("KeyId")
-                        .HasColumnType("int");
-
                     b.Property<string>("LanguageCode")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
 
-                    b.Property<DateTime>("UpdatedAt")
+                    b.Property<int>("TranslationKeyId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("UpdatedByEmpId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Value")
@@ -233,7 +246,9 @@ namespace login1.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("KeyId", "LanguageCode")
+                    b.HasIndex("LanguageCode");
+
+                    b.HasIndex("TranslationKeyId", "LanguageCode")
                         .IsUnique();
 
                     b.ToTable("TranslationValues");
@@ -310,13 +325,22 @@ namespace login1.Migrations
 
             modelBuilder.Entity("login1.Models.TranslationValue", b =>
                 {
-                    b.HasOne("TranslationKey", "Key")
+                    b.HasOne("login1.Models.Language", "Language")
+                        .WithMany("TranslationValues")
+                        .HasForeignKey("LanguageCode")
+                        .HasPrincipalKey("Code")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TranslationKey", "TranslationKey")
                         .WithMany("Translations")
-                        .HasForeignKey("KeyId")
+                        .HasForeignKey("TranslationKeyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Key");
+                    b.Navigation("Language");
+
+                    b.Navigation("TranslationKey");
                 });
 
             modelBuilder.Entity("login1.Models.User", b =>
@@ -340,6 +364,11 @@ namespace login1.Migrations
                     b.Navigation("KeyProjects");
 
                     b.Navigation("Translations");
+                });
+
+            modelBuilder.Entity("login1.Models.Language", b =>
+                {
+                    b.Navigation("TranslationValues");
                 });
 
             modelBuilder.Entity("login1.Models.Project", b =>

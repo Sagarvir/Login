@@ -1,4 +1,4 @@
-﻿using login1.Models;
+using login1.Models;
 using TranslationService.DTO.Translation;
 
 namespace TranslationService.Repositories.Interfaces
@@ -16,5 +16,8 @@ namespace TranslationService.Repositories.Interfaces
             List<dynamic> items,
             List<TranslationValue> existing,
             string empId);
+        Task<TranslationKey?> GetKeyByIdAsync(int id);
+        Task DeleteValuesAsync(List<TranslationValue> values);
+        Task DeleteKeyAsync(TranslationKey key);
     }
 }
