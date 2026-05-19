@@ -10,6 +10,8 @@
         />
       </mat-form-field>
 
+      
+
       <button
         mat-raised-button
         color="primary"
@@ -17,7 +19,7 @@
         class="add-btn"
       >
         <mat-icon>add</mat-icon>
-        <span>Add Translation</span>
+        <span>Create Translation</span>
       </button>
     </div>
 
@@ -36,6 +38,7 @@
               type="text"
               [(ngModel)]="element.translationKey"
               (change)="updateTranslation(i, element)"
+              placeholder="Enter translation key"
               class="editable-field"
             />
           </td>
@@ -50,6 +53,7 @@
               type="text"
               [(ngModel)]="element.originalText"
               (change)="updateTranslation(i, element)"
+              placeholder="Enter original text"
               class="editable-field"
             />
           </td>
@@ -64,6 +68,7 @@
               type="text"
               [(ngModel)]="element.translation"
               (change)="updateTranslation(i, element)"
+              placeholder="Enter translation"
               class="editable-field"
             />
           </td>
@@ -78,6 +83,7 @@
               type="text"
               [(ngModel)]="element.tags"
               (change)="updateTranslation(i, element)"
+              placeholder="Enter tags"
               class="editable-field"
             />
           </td>

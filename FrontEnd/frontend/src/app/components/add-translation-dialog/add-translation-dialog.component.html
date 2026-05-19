@@ -3,17 +3,17 @@
   <form [formGroup]="form" class="dialog-form">
     <mat-form-field appearance="outline">
       <mat-label>Translation Key</mat-label>
-      <input matInput formControlName="translationKey" />
+      <input matInput formControlName="translationKey" placeholder="Enter translation key" />
     </mat-form-field>
 
     <mat-form-field appearance="outline">
       <mat-label>Original Text</mat-label>
-      <input matInput formControlName="originalText" />
+      <input matInput formControlName="originalText" placeholder="Enter original text" />
     </mat-form-field>
 
     <mat-form-field appearance="outline">
       <mat-label>Client Project Tags</mat-label>
-      <input matInput formControlName="tags" />
+      <input matInput formControlName="tags" placeholder="Enter tags (optional)" />
     </mat-form-field>
   </form>
 </mat-dialog-content>
