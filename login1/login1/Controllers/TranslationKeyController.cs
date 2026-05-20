@@ -66,8 +66,7 @@ namespace login1.Controllers
         {
             try
             {
-                var empId = User.FindFirst("empId")?.Value;
-                await _service.DeleteKey(id, empId);
+                await _service.DeleteKey(id);
                 return Ok("Key deleted successfully.");
             }
             catch (Exception ex)

@@ -144,13 +144,8 @@ namespace TranslationService.Services
             });
         }
 
-        public async Task DeleteKey(int id, string empId)
+        public async Task DeleteKey(int id)
         {
-            if (string.IsNullOrEmpty(empId))
-            {
-                throw new Exception("Invalid token.");
-            }
-
             if (id <= 0)
             {
                 throw new Exception("Invalid key id.");
