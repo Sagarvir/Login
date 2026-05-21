@@ -13,8 +13,10 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSortModule } from '@angular/material/sort';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatCardModule } from '@angular/material/card';
+import { MatSelectModule } from '@angular/material/select';
 import { TranslationService } from '../../services/translation.service';
-import { Translation } from '../../models/translation.model';
+import { LanguageService } from '../../services/language.service';
+import { Translation, Language } from '../../models/translation.model';
 import { DeleteConfirmDialogComponent } from '../delete-confirm-dialog/delete-confirm-dialog.component';
 import { AddTranslationDialogComponent } from '../add-translation-dialog/add-translation-dialog.component';
 
@@ -35,6 +37,7 @@ import { AddTranslationDialogComponent } from '../add-translation-dialog/add-tra
     MatSortModule,
     MatDialogModule,
     MatCardModule,
+    MatSelectModule,
   ],
   templateUrl: './translation-table.component.html',
   styleUrl: './translation-table.component.scss',
@@ -51,14 +54,19 @@ export class TranslationTableComponent implements OnInit, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   searchTerm = '';
+  languages: Language[] = [];
+  selectedLanguage: string = 'EN';
+  translations: { [key: string]: string } = {};
 
   constructor(
     private translationService: TranslationService,
+    private languageService: LanguageService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
+    this.loadLanguages();
 
     // ✅ Load data from backend
     this.translationService.loadTranslations().subscribe({
@@ -77,6 +85,21 @@ export class TranslationTableComponent implements OnInit, AfterViewInit {
       if (this.paginator) {
         this.dataSource.paginator = this.paginator;
       }
+    });
+  }
+
+  loadLanguages(): void {
+    this.languageService.getLanguages().subscribe({
+      next: (languages) => {
+        this.languages = languages;
+        if (languages.length > 0) {
+          this.selectedLanguage = languages[0].code;
+          this.loadTranslationsForLanguage(this.selectedLanguage);
+        }
+      },
+      error: (error) => {
+        console.error('Error loading languages:', error);
+      },
     });
   }
 
@@ -158,5 +181,31 @@ export class TranslationTableComponent implements OnInit, AfterViewInit {
         }
       });
     });
+  }
+
+  loadTranslationsForLanguage(languageCode: string): void {
+    console.log('Loading translations for language:', languageCode);
+    this.translationService.getAllTranslations(languageCode).subscribe({
+      next: (translationDict) => {
+        this.translations = translationDict;
+        console.log('Translations loaded successfully for language:', languageCode);
+        console.log('Translation dictionary:', this.translations);
+      },
+      error: (error) => {
+        console.error('Error loading translations for language:', languageCode, error);
+        this.translations = {};
+      },
+    });
+  }
+
+  onLanguageChange(): void {
+    console.log('Language changed to:', this.selectedLanguage);
+    this.loadTranslationsForLanguage(this.selectedLanguage);
+  }
+
+  getTranslation(key: string): string {
+    const value = this.translations[key];
+    console.log(`Getting translation for key '${key}':`, value || `(empty)`);
+    return value || '';
   }
 }

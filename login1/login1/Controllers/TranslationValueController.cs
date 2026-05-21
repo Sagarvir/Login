@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TranslationService.DTO.Translation;
 using TranslationService.Services.Interfaces;
-
 namespace login1.Controllers
     {
         [ApiController]
@@ -98,7 +97,7 @@ namespace login1.Controllers
             [Authorize]
             public async Task<IActionResult> GetTranslation(int keyId, string languageCode)
             {
-                var language = languageCode.Trim().ToLower();
+                var language = languageCode.Trim().ToUpper();
 
                 var translation = await _context.TranslationValues
                     .Where(t => t.TranslationKeyId == keyId && t.LanguageCode == language)
@@ -151,6 +150,32 @@ namespace login1.Controllers
             {
                 return BadRequest(ex.Message);
             }
+        }
+        [HttpGet("with-translations")]
+        [Authorize(Roles ="Translator,Admin")]
+        public async Task<IActionResult> GetKeysWithTranslations(string languageCode)
+        {
+            if (string.IsNullOrWhiteSpace(languageCode))
+                return BadRequest("LanguageCode is required.");
+
+            var language = languageCode.Trim().ToUpper();
+
+            var result = await _context.TranslationKeys
+                .Where(k => k.IsActive)
+                .Select(k => new TranslationService.DTO.Translation.TranslationKeyWithValueDto
+                {
+                    KeyId = k.Id,
+                    Key = k.KeyName,
+                    OriginalText = k.OriginalText,
+                    ProjectId = k.ProjectId,
+                    Value = k.Translations
+                        .Where(t => t.LanguageCode == language)
+                        .Select(t => t.Value)
+                        .FirstOrDefault() ?? ""
+                })
+                .ToListAsync();
+
+            return Ok(result);
         }
     }
     }

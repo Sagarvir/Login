@@ -15,6 +15,11 @@ export interface DashboardStats {
   completion: number;
 }
 
+export interface Language {
+  code: string;
+  name: string;
+}
+
 export interface User {
   id: string;
   name: string;

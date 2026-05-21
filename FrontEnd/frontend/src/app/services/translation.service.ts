@@ -222,6 +222,33 @@ export class TranslationService {
     return this.loadTranslations();
   }
 
+  getAllTranslations(languageCode: string): Observable<{ [key: string]: string }> {
+    const upperLanguageCode = languageCode.toUpperCase();
+    const url = `${this.translationValueUrl}/with-translations?languageCode=${upperLanguageCode}`;
+
+    return this.http.get<Array<{ key: string; value: string }>>(url).pipe(
+      map((response) => {
+        console.log('API Response for language', upperLanguageCode, ':', response);
+        const dictionary: { [key: string]: string } = {};
+        
+        if (Array.isArray(response)) {
+          response.forEach((item) => {
+            if (item && item.key && item.value) {
+              dictionary[item.key] = item.value;
+            }
+          });
+        }
+        
+        console.log('Converted dictionary:', dictionary);
+        return dictionary;
+      }),
+      catchError((error) => {
+        console.error('Failed to load translations for language:', languageCode, error);
+        return of({} as { [key: string]: string });
+      })
+    );
+  }
+
   getStats(): DashboardStats {
     const totalKeys = this.translations.filter((t) => t.translationKey?.trim()).length;
     const translated = this.translations.filter(

@@ -10,7 +10,14 @@
         />
       </mat-form-field>
 
-      
+      <mat-form-field appearance="outline" class="language-select">
+        <mat-label>Language</mat-label>
+        <mat-select [(ngModel)]="selectedLanguage" (selectionChange)="onLanguageChange()">
+          @for (lang of languages; track lang.code) {
+            <mat-option [value]="lang.code">{{ lang.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
 
       <button
         mat-raised-button
@@ -66,8 +73,8 @@
             <input
               matInput
               type="text"
-              [(ngModel)]="element.translation"
-              (change)="updateTranslation(i, element)"
+              [ngModel]="getTranslation(element.translationKey)"
+              (ngModelChange)="element.translation = $event; updateTranslation(i, element)"
               placeholder="Enter translation"
               class="editable-field"
             />
