@@ -74,7 +74,7 @@
               matInput
               type="text"
               [ngModel]="getTranslation(element.translationKey)"
-              (ngModelChange)="element.translation = $event; updateTranslation(i, element)"
+              (ngModelChange)="element.translation = $event; markAsModified(element)"
               placeholder="Enter translation"
               class="editable-field"
             />

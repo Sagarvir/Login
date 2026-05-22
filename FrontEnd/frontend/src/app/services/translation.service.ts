@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, catchError, map, of, tap, throwError } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import { Translation, DashboardStats } from '../models/translation.model';
+import { Translation, DashboardStats, AddTranslationRequest } from '../models/translation.model';
 
 @Injectable({
   providedIn: 'root',
@@ -17,19 +17,50 @@ export class TranslationService {
   );
   public translations$ = this.translationsSubject.asObservable();
 
+  private selectedLanguageSubject = new BehaviorSubject<string>('EN');
+  public selectedLanguage$ = this.selectedLanguageSubject.asObservable();
+
+  private saveRequestedSubject = new BehaviorSubject<void>(undefined);
+  public saveRequested$ = this.saveRequestedSubject.asObservable();
+
+  private pendingSaveSubject = new BehaviorSubject<{
+    languageCode: string;
+    modifiedTranslations: any[];
+  } | null>(null);
+  public pendingSave$ = this.pendingSaveSubject.asObservable();
+
   constructor(private http: HttpClient) {
     this.translations = this.loadCachedTranslations();
   }
 
+  setSelectedLanguage(languageCode: string): void {
+    this.selectedLanguageSubject.next(languageCode);
+  }
+
+  setPendingSave(languageCode: string, modifiedTranslations: any[]): void {
+    this.pendingSaveSubject.next({ languageCode, modifiedTranslations });
+  }
+
+  requestSave(): void {
+    this.saveRequestedSubject.next();
+  }
+
   loadTranslations(languageCode = 'EN'): Observable<Translation[]> {
     const params = { languageCode };
+    // Use the /with-translations endpoint which includes KeyId, Key, OriginalText, and Value
+    const url = `${this.translationValueUrl}/with-translations?languageCode=${languageCode.toUpperCase()}`;
 
-    return this.http.get<any>(this.translationKeyUrl).pipe(
+    return this.http.get<any[]>(url).pipe(
+      tap((response) => {
+        console.log('=== RAW API RESPONSE ===', response);
+        if (Array.isArray(response) && response.length > 0) {
+          console.log('First item from API:', response[0]);
+          console.log('API response structure keys:', Object.keys(response[0]));
+        }
+      }),
       tap((response) => {
         console.log('TranslationValue API response', response);
-        const items = Array.isArray(response)
-          ? response
-          : response?.items ?? response?.data ?? response?.results ?? [];
+        const items = Array.isArray(response) ? response : [];
 
         const cached = this.loadCachedTranslations();
         const backendTranslations = (items || [])
@@ -71,15 +102,29 @@ export class TranslationService {
       ? nestedValues[0].value ?? nestedValues[0].translation ?? nestedValues[0].text ?? ''
       : '';
 
-   return {
-  id: item.id,
-  translationKey: item.keyName,
-  originalText: item.originalText,
-  translation: '',
-  tags: item.projectId?.toString() || '',
-  client: '',
-  project: item.projectId?.toString() || ''
-};
+    // Handle both PascalCase (from ASP.NET) and camelCase responses
+    // Try: id, Id, keyId, KeyId - this handles both endpoints
+    const id = item.id ?? item.Id ?? item.keyId ?? item.KeyId;
+    const keyName = item.keyName ?? item.KeyName ?? item.key ?? item.Key;
+    const originalText = item.originalText ?? item.OriginalText;
+    const projectId = item.projectId ?? item.ProjectId;
+    // For with-translations endpoint response, also check Value field
+    const translation = item.translation ?? item.value ?? item.Value ?? nestedTranslation;
+
+    console.log('=== MAPPING DEBUG ===');
+    console.log('Raw item:', item);
+    console.log('Extracted - id:', id, 'keyName:', keyName, 'originalText:', originalText, 'translation:', translation);
+
+    return {
+      id: id,
+      translationKey: keyName || '',
+      originalText: originalText || '',
+      translation: translation || '',
+      isModified: false,
+      tags: projectId?.toString() || '',
+      client: '',
+      project: projectId?.toString() || ''
+    };
   }
 
   private mergeWithCachedTranslation(item: Translation, cached: Translation[]): Translation {
@@ -226,19 +271,24 @@ export class TranslationService {
     const upperLanguageCode = languageCode.toUpperCase();
     const url = `${this.translationValueUrl}/with-translations?languageCode=${upperLanguageCode}`;
 
-    return this.http.get<Array<{ key: string; value: string }>>(url).pipe(
+    return this.http.get<any[]>(url).pipe(
       map((response) => {
         console.log('API Response for language', upperLanguageCode, ':', response);
         const dictionary: { [key: string]: string } = {};
-        
+
         if (Array.isArray(response)) {
           response.forEach((item) => {
-            if (item && item.key && item.value) {
-              dictionary[item.key] = item.value;
+            // Handle both camelCase (key) and PascalCase (Key) from API
+            const key = item.key ?? item.Key;
+            // Handle both camelCase (value) and PascalCase (Value) from API
+            const value = item.value ?? item.Value;
+
+            if (item && key && value) {
+              dictionary[key] = value;
             }
           });
         }
-        
+
         console.log('Converted dictionary:', dictionary);
         return dictionary;
       }),
@@ -247,6 +297,35 @@ export class TranslationService {
         return of({} as { [key: string]: string });
       })
     );
+  }
+
+  upsertTranslations(translations: AddTranslationRequest[]): Observable<any> {
+    const bulkRequest = { translations };
+    const url = `${this.translationValueUrl}/bulk`;
+
+    console.log('Sending bulk request to:', url);
+    console.log('Request payload:', JSON.stringify(bulkRequest, null, 2));
+    console.log('Translations array:', translations);
+
+    return this.http.post(url, bulkRequest, { responseType: 'text' }).pipe(
+      tap((response) => {
+        console.log('Translations upserted successfully:', response);
+        this.pendingSaveSubject.next(null);
+      }),
+      catchError((error) => {
+        console.error('Failed to upsert translations', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  executePendingSave(): Observable<any> {
+    const pending = this.pendingSaveSubject.value;
+    if (!pending || pending.modifiedTranslations.length === 0) {
+      return of({ message: 'No changes to save' });
+    }
+
+    return this.upsertTranslations(pending.modifiedTranslations);
   }
 
   getStats(): DashboardStats {

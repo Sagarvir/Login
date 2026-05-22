@@ -45,20 +45,7 @@ export class HeaderComponent {
 
   saveTranslations(): void {
     this.isSaving = true;
-    this.translationService.saveTranslations().subscribe({
-      next: () => {
-        this.isSaving = false;
-        this.snackBar.open('Translations saved successfully!', 'Close', {
-          duration: 3000,
-        });
-      },
-      error: () => {
-        this.isSaving = false;
-        this.snackBar.open('Error saving translations', 'Close', {
-          duration: 3000,
-        });
-      },
-    });
+    this.translationService.requestSave();
   }
 
   isAdmin(): boolean {

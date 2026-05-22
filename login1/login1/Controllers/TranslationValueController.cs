@@ -151,8 +151,27 @@ namespace login1.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpPost("bulk-v2")]
+        [Authorize(Roles = "Translator,Admin")]
+        public async Task<IActionResult> UpsertTranslationsV2(BulkTranslationRequestV2 request)
+        {
+            var empId = User.FindFirst("empId")?.Value;
+            if (string.IsNullOrEmpty(empId))
+                return Unauthorized("Invalid token.");
+
+            try
+            {
+                var result = await _translationService.UpsertTranslationsV2Async(request, empId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
         [HttpGet("with-translations")]
-        [Authorize(Roles ="Translator,Admin")]
+        [Authorize(Roles ="Translator,Creator,Admin,Viewer")]
         public async Task<IActionResult> GetKeysWithTranslations(string languageCode)
         {
             if (string.IsNullOrWhiteSpace(languageCode))

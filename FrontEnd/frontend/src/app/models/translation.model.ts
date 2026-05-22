@@ -3,6 +3,7 @@ export interface Translation {
   translationKey: string;
   originalText: string;
   translation: string;
+  isModified?: boolean;
   tags?: string;
   client?: string;
   project?: string;
@@ -18,6 +19,12 @@ export interface DashboardStats {
 export interface Language {
   code: string;
   name: string;
+}
+
+export interface AddTranslationRequest {
+  keyId: number;
+  value: string;
+  languageCode: string;
 }
 
 export interface User {

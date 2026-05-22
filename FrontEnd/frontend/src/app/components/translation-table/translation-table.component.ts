@@ -86,6 +86,11 @@ export class TranslationTableComponent implements OnInit, AfterViewInit {
         this.dataSource.paginator = this.paginator;
       }
     });
+
+    // ✅ Subscribe to save requests from header
+    this.translationService.saveRequested$.subscribe(() => {
+      this.executeTableSave();
+    });
   }
 
   loadLanguages(): void {
@@ -190,6 +195,11 @@ export class TranslationTableComponent implements OnInit, AfterViewInit {
         this.translations = translationDict;
         console.log('Translations loaded successfully for language:', languageCode);
         console.log('Translation dictionary:', this.translations);
+        
+        // Mark all rows as not modified when fresh translations are loaded
+        this.dataSource.data.forEach((item) => {
+          item.isModified = false;
+        });
       },
       error: (error) => {
         console.error('Error loading translations for language:', languageCode, error);
@@ -207,5 +217,87 @@ export class TranslationTableComponent implements OnInit, AfterViewInit {
     const value = this.translations[key];
     console.log(`Getting translation for key '${key}':`, value || `(empty)`);
     return value || '';
+  }
+
+  markAsModified(element: Translation): void {
+    element.isModified = true;
+    console.log(`Marked row with key '${element.translationKey}' as modified`);
+  }
+
+  getModifiedTranslations(): any[] {
+    const modified = this.dataSource.data
+      .filter((item) => item.isModified && item.translation?.trim())
+      .map((item) => {
+        console.log('Full item object:', item);
+        console.log('item.id:', item.id);
+        console.log('item.translationKey:', item.translationKey);
+
+        // Ensure keyId is properly extracted from the item
+        const keyId = item.id ? Number(item.id) : null;
+
+        if (!keyId) {
+          console.error('ERROR: keyId is null for item:', item);
+          throw new Error(`Cannot save translation: keyId is missing for key '${item.translationKey}'`);
+        }
+
+        const request = {
+          keyId: keyId,
+          value: item.translation,
+          languageCode: this.selectedLanguage.toUpperCase(),
+        };
+        console.log('Final request:', request);
+        return request;
+      });
+
+    console.log('Modified translations to send:', modified);
+    return modified;
+  }
+
+  saveTranslations(): void {
+    this.executeTableSave();
+  }
+
+  executeTableSave(): void {
+    console.log('Current table data:', this.dataSource.data);
+    console.log('Selected language:', this.selectedLanguage);
+
+    try {
+      const modifiedTranslations = this.getModifiedTranslations();
+
+      if (modifiedTranslations.length === 0) {
+        this.snackBar.open('No changes to save', 'Close', { duration: 3000 });
+        return;
+      }
+
+      console.log('Saving modified translations:', modifiedTranslations);
+
+      this.translationService.upsertTranslations(modifiedTranslations).subscribe({
+        next: (response) => {
+          console.log('Translations saved successfully:', response);
+
+          // Reset isModified flag
+          this.dataSource.data.forEach((item) => {
+            if (item.isModified) {
+              item.isModified = false;
+            }
+          });
+
+          // Reload translations for current language
+          this.loadTranslationsForLanguage(this.selectedLanguage);
+
+          this.snackBar.open('Translations saved successfully!', 'Close', {
+            duration: 3000,
+          });
+        },
+        error: (error) => {
+          console.error('Error saving translations:', error);
+          const message = error?.error?.message || error?.message || 'Failed to save translations';
+          this.snackBar.open(message, 'Close', { duration: 3000 });
+        },
+      });
+    } catch (error: any) {
+      console.error('Error preparing translations:', error);
+      this.snackBar.open(error?.message || 'Failed to prepare translations for save', 'Close', { duration: 3000 });
+    }
   }
 }

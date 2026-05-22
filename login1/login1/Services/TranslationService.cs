@@ -132,6 +132,43 @@ namespace TranslationService.Services
             return "Translations saved successfully.";
         }
 
+        public async Task<string> UpsertTranslationsV2Async(BulkTranslationRequestV2 request, string empId)
+        {
+            if (request.Translations == null || request.Translations.Count == 0)
+                throw new Exception("At least one translation is required.");
+
+            var items = request.Translations;
+
+            if (items.Any(t => t.KeyId <= 0))
+                throw new Exception("Invalid KeyId.");
+
+            if (items.Any(t => string.IsNullOrWhiteSpace(t.LanguageCode)))
+                throw new Exception("LanguageCode required.");
+
+            var keyIds = items.Select(t => t.KeyId).Distinct().ToList();
+
+            var validKeys = await _repo.GetValidKeyIdsAsync(keyIds);
+
+            if (validKeys.Count != keyIds.Count)
+                throw new Exception("Some keys not found.");
+
+            var normalizedItems = items
+                .Select(t => new
+                {
+                    t.KeyId,
+                    LanguageCode = t.LanguageCode.Trim().ToUpper(),
+                    t.Value
+                })
+                .Cast<dynamic>()
+                .ToList();
+
+            var existing = await _repo.GetExistingTranslationsAsync(keyIds);
+
+            await _repo.UpsertBulkAsync(normalizedItems, existing, empId);
+
+            return "Translations saved successfully.";
+        }
+
         public async Task<object> GetAllKeys()
         {
             var keys = await _repo.GetAllKeys();
