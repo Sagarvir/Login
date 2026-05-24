@@ -210,7 +210,19 @@ export class TranslationTableComponent implements OnInit, AfterViewInit {
 
   onLanguageChange(): void {
     console.log('Language changed to:', this.selectedLanguage);
-    this.loadTranslationsForLanguage(this.selectedLanguage);
+    // Update the service's selected language
+    this.translationService.setSelectedLanguage(this.selectedLanguage);
+    // Load translations for the selected language in the service
+    this.translationService.loadTranslations(this.selectedLanguage).subscribe({
+      next: () => {
+        console.log('Translations reloaded for language:', this.selectedLanguage);
+        // Also load the translation dictionary for the table
+        this.loadTranslationsForLanguage(this.selectedLanguage);
+      },
+      error: (error) => {
+        console.error('Error loading translations for language:', this.selectedLanguage, error);
+      }
+    });
   }
 
   getTranslation(key: string): string {
@@ -251,6 +263,21 @@ export class TranslationTableComponent implements OnInit, AfterViewInit {
 
     console.log('Modified translations to send:', modified);
     return modified;
+    }
+      getStats() {
+    const totalKeys = this.dataSource.data.filter(
+      (t) => t.translationKey?.trim()
+    ).length;
+
+    const translated = this.dataSource.data.filter((t) => {
+      const value = this.translations[t.translationKey];
+      return value && value.trim() !== '';
+    }).length;
+
+    const completion =
+      totalKeys > 0 ? Math.round((translated / totalKeys) * 100) : 0;
+
+    return { totalKeys, translated, completion };
   }
 
   saveTranslations(): void {
@@ -281,6 +308,10 @@ export class TranslationTableComponent implements OnInit, AfterViewInit {
               item.isModified = false;
             }
           });
+          this.snackBar.open('Translations saved successfully!', 'Close', {
+  duration: 3000,
+});
+this.translationService.notifySaveCompleted();
 
           // Reload translations for current language
           this.loadTranslationsForLanguage(this.selectedLanguage);
@@ -293,6 +324,7 @@ export class TranslationTableComponent implements OnInit, AfterViewInit {
           console.error('Error saving translations:', error);
           const message = error?.error?.message || error?.message || 'Failed to save translations';
           this.snackBar.open(message, 'Close', { duration: 3000 });
+          this.translationService.notifySaveCompleted();
         },
       });
     } catch (error: any) {

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component,OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
@@ -25,7 +25,7 @@ import { AuthService } from '../../core/services/auth.service';
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss',
 })
-export class HeaderComponent {
+export class HeaderComponent implements OnInit {
   userInfo = {
     userId: '101',
     language: 'EN',
@@ -39,14 +39,23 @@ export class HeaderComponent {
     private snackBar: MatSnackBar,
     private router: Router,
     private authService: AuthService
-  ) {
+  ) 
+  
+  {
     this.userInfo.role = this.authService.getUserRole() || 'Creator';
   }
-
-  saveTranslations(): void {
-    this.isSaving = true;
-    this.translationService.requestSave();
+  ngOnInit(): void {
+    this.translationService.saveCompleted$.subscribe(() => {
+    this.isSaving = false;
+  });
   }
+
+ saveTranslations(): void {
+  if (this.isSaving) return;
+
+  this.isSaving = true;
+  this.translationService.requestSave();
+}
 
   isAdmin(): boolean {
     return this.userInfo.role === 'Admin';

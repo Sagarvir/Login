@@ -28,7 +28,14 @@ export class TranslationService {
     modifiedTranslations: any[];
   } | null>(null);
   public pendingSave$ = this.pendingSaveSubject.asObservable();
+  // ✅ ADD BELOW pendingSave$
+// ✅ ADD THIS BLOCK RIGHT HERE
+private saveCompletedSubject = new BehaviorSubject<boolean>(false);
+public saveCompleted$ = this.saveCompletedSubject.asObservable();
 
+notifySaveCompleted(): void {
+  this.saveCompletedSubject.next(true);
+}
   constructor(private http: HttpClient) {
     this.translations = this.loadCachedTranslations();
   }
@@ -62,13 +69,12 @@ export class TranslationService {
         console.log('TranslationValue API response', response);
         const items = Array.isArray(response) ? response : [];
 
-        const cached = this.loadCachedTranslations();
+        // Don't merge with old cache when loading specific language - use fresh data only
         const backendTranslations = (items || [])
-          .map((item: any) => this.mapApiTranslationKey(item))
-          .map((item: Translation) => this.mergeWithCachedTranslation(item, cached));
+          .map((item: any) => this.mapApiTranslationKey(item));
 
-        const translations = this.combineWithCachedTranslations(backendTranslations, cached);
-        this.setTranslations(translations);
+        // Use only the backend translations for the current language, no cache merging
+        this.setTranslations(backendTranslations);
       }),
       map(() => this.translations),
       catchError((error) => {
@@ -330,9 +336,13 @@ export class TranslationService {
 
   getStats(): DashboardStats {
     const totalKeys = this.translations.filter((t) => t.translationKey?.trim()).length;
-    const translated = this.translations.filter(
-      (t) => t.translationKey?.trim() && t.translation?.trim()
-    ).length;
+    const translated = this.translations.filter((t) => {
+  return (
+    t.translationKey?.trim() &&
+    t.translation &&
+    t.translation.trim() !== ''
+  );
+}).length;
     const completion = totalKeys > 0 ? Math.round((translated / totalKeys) * 100) : 0;
 
     return {
