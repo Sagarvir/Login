@@ -1,6 +1,11 @@
-﻿namespace TranslationService.Services.Interfaces
+using login1.Models;
+using TranslationService.DTO.Languages;
+namespace TranslationService.Services.Interfaces
 {
-    public class ILanguageService
+    public interface ILanguageService
     {
+        Task<List<Language>> GetLanguagesAsync();
+        Task<Language> AddLanguageAsync(AddLanguage language);
+        Task DeleteLanguageAsync(int id);
     }
 }

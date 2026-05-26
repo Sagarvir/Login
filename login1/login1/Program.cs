@@ -1,4 +1,4 @@
-using login1.Data;
+﻿using login1.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -18,6 +18,8 @@ builder.Services.AddScoped<IAuthService, TranslationService.Services.AuthService
 builder.Services.AddScoped<IUserRepository, TranslationService.Repositories.UserRepository>();
 builder.Services.AddScoped<ITranslationService, global::TranslationService.Services.TranslationService>();
 builder.Services.AddScoped<ITranslationRepository, TranslationService.Repositories.TranslationRepository>();
+builder.Services.AddScoped<ILanguageService, TranslationService.Services.LanguageService>();
+builder.Services.AddScoped<ILanguageRepository, TranslationService.Repositories.LanguageRepository>();
 var jwtKey = builder.Configuration["Jwt:Key"]
     ?? throw new InvalidOperationException("Jwt:Key is missing in configuration.");
 

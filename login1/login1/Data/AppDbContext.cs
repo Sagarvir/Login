@@ -1,6 +1,5 @@
 ﻿using login1.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Data;
 
 namespace login1.Data
 {
@@ -22,6 +21,7 @@ namespace login1.Data
         public DbSet<KeyProject> KeyProjects { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<RefreshToken>()
@@ -68,7 +68,7 @@ namespace login1.Data
             .HasForeignKey(t => t.TranslationKeyId)
             .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<KeyProject>()
+            modelBuilder.Entity<KeyProject>() 
             .HasOne(kp => kp.Key)
             .WithMany(k => k.KeyProjects)
             .HasForeignKey(kp => kp.KeyId);
@@ -111,7 +111,7 @@ namespace login1.Data
                     .WithMany(k => k.Translations)
                     .HasForeignKey(t => t.TranslationKeyId)
                     .OnDelete(DeleteBehavior.Cascade);
-                
+
             });
         }
     }

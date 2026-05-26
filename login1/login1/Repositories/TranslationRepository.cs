@@ -86,6 +86,78 @@ namespace TranslationService.Repositories
                 .ToListAsync();
         }
 
+        public async Task<bool> TranslationKeyExistsAsync(int keyId)
+        {
+            return await _context.TranslationKeys
+                .AnyAsync(k => k.Id == keyId && k.IsActive);
+        }
+
+        public async Task<bool> LanguageExistsAsync(string languageCode)
+        {
+            return await _context.Languages
+                .AnyAsync(l => l.Code == languageCode);
+        }
+
+        public async Task<TranslationValue?> GetTranslationValueAsync(int keyId, string languageCode)
+        {
+            return await _context.TranslationValues
+                .FirstOrDefaultAsync(t => t.TranslationKeyId == keyId && t.LanguageCode == languageCode);
+        }
+
+        public async Task SaveTranslationAsync(TranslationValue translation)
+        {
+            _context.TranslationValues.Add(translation);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task SaveChangesAsync()
+        {
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<TranslationValue?> GetTranslationForUiAsync(int keyId, string languageCode)
+        {
+            return await _context.TranslationValues
+                .Where(t => t.TranslationKeyId == keyId && t.LanguageCode == languageCode)
+                .Select(t => new TranslationValue
+                {
+                    TranslationKeyId = t.TranslationKeyId,
+                    LanguageCode = t.LanguageCode,
+                    Value = t.Value
+                })
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<List<TranslationValue>> GetTranslationsByKeyAsync(int keyId)
+        {
+            return await _context.TranslationValues
+                .Where(t => t.TranslationKeyId == keyId)
+                .Select(t => new TranslationValue
+                {
+                    LanguageCode = t.LanguageCode,
+                    Value = t.Value
+                })
+                .ToListAsync();
+        }
+
+        public async Task<List<TranslationKeyWithValueDto>> GetKeysWithTranslationsAsync(string languageCode)
+        {
+            return await _context.TranslationKeys
+                .Where(k => k.IsActive)
+                .Select(k => new TranslationKeyWithValueDto
+                {
+                    KeyId = k.Id,
+                    Key = k.KeyName,
+                    OriginalText = k.OriginalText,
+                    ProjectId = k.ProjectId,
+                    Value = k.Translations
+                        .Where(t => t.LanguageCode == languageCode)
+                        .Select(t => t.Value)
+                        .FirstOrDefault() ?? ""
+                })
+                .ToListAsync();
+        }
+
         public async Task UpsertBulkAsync(
             List<dynamic> items,
             List<TranslationValue> existing,

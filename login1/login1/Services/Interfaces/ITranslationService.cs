@@ -9,9 +9,14 @@ namespace TranslationService.Services.Interfaces
         Task<object> GetAllKeys();
         Task<string> UpsertTranslationsAsync(BulkTranslationRequest request, string empId);
 
+        Task<string> InsertTranslationAsync(AddTranslationRequest request, string empId);
+
+        Task<object> GetTranslationAsync(int keyId, string languageCode);
+        Task<object> GetAllTranslationsAsync(int keyId);
+        Task<List<TranslationKeyWithValueDto>> GetKeysWithTranslationsAsync(string languageCode);
+
         Task DeleteKey(int id);
 
         Task<string> UpsertTranslationsV2Async(BulkTranslationRequestV2 request, string empId);
-
     }
 }

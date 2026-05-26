@@ -1,59 +1,52 @@
-﻿using login1.Data;
-using login1.Models;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-
+using TranslationService.DTO.Languages;
+using TranslationService.Services.Interfaces;
 namespace login1.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class LanguageController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly ILanguageService _languageService;
 
-        public LanguageController(AppDbContext context)
+        public LanguageController(ILanguageService languageService)
         {
-            _context = context;
+            _languageService = languageService;
         }
 
         // GET all languages
         [HttpGet]
+        [Authorize(Roles = "Admin,Creator,Translator")]
         public async Task<IActionResult> GetLanguages()
         {
-            var languages = await _context.Languages.ToListAsync();
+            var languages = await _languageService.GetLanguagesAsync();
             return Ok(languages);
         }
 
         // ADD new language
         [HttpPost]
-        public async Task<IActionResult> AddLanguage(Language language)
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AddLanguage(AddLanguage language)
         {
-            // Ensure we don't try to insert an explicit identity value from the client.
-            // If client provided an Id, reset it so SQL Server will generate the identity value.
-            language.Id = 0;
-
-            // If Code wasn't provided, derive a simple code from the name (first two letters lowercased).
-            if (string.IsNullOrWhiteSpace(language.Code) && !string.IsNullOrWhiteSpace(language.Name))
-            {
-                language.Code = language.Name.Substring(0, Math.Min(2, language.Name.Length)).ToLowerInvariant();
-            }
-
-            _context.Languages.Add(language);
-            await _context.SaveChangesAsync();
-            return Ok(language);
+            var result = await _languageService.AddLanguageAsync(language);
+            return Ok(result);
         }
 
         // DELETE language
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteLanguage(int id)
         {
-            var lang = await _context.Languages.FindAsync(id);
-            if (lang == null) return NotFound();
-
-            _context.Languages.Remove(lang);
-            await _context.SaveChangesAsync();
-            return Ok("Deleted");
+            try
+            {
+                await _languageService.DeleteLanguageAsync(id);
+                return Ok("Deleted");
+            }
+            catch (Exception ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
     }
 }

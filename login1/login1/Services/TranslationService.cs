@@ -1,5 +1,5 @@
+using login1.Models;
 using TranslationService.DTO.Translation;
-using TranslationService.Repositories;
 using TranslationService.Repositories.Interfaces;
 using TranslationService.Services.Interfaces;
 
@@ -16,8 +16,7 @@ namespace TranslationService.Services
 
         public async Task<object> CreateKey(CreateKeyRequest request, string empId)
         {
-            if (string.IsNullOrEmpty(empId))
-                throw new Exception("Invalid token.");
+
 
             var keyName = request.KeyName.Trim().ToUpper();
 
@@ -52,8 +51,6 @@ namespace TranslationService.Services
 
         public async Task<object> CreateKeys(CreateKeysRequest request, string empId)
         {
-            if (string.IsNullOrEmpty(empId))
-                throw new Exception("Invalid token.");
 
             if (request.Keys == null || request.Keys.Count == 0)
                 throw new Exception("At least one key is required.");
@@ -75,19 +72,30 @@ namespace TranslationService.Services
                 throw new Exception("Valid ProjectId required.");
 
             var duplicates = await _repo.GetExistingKeys(normalized);
+            var existingSet = duplicates
+                .Select(d => (d.KeyName.ToUpperInvariant(), d.ProjectId))
+                .ToHashSet();
 
-            if (duplicates.Any())
-                throw new Exception("Some keys already exist.");
+            var keys = normalized
+                .Where(k => !existingSet.Contains((k.KeyName!, k.ProjectId)))
+                .Select(k => new TranslationKey
+                {
+                    KeyName = k.KeyName!,
+                    OriginalText = k.OriginalText!,
+                    ProjectId = k.ProjectId,
+                    CreatedByEmpId = empId,
+                    CreatedAt = DateTime.UtcNow,
+                    IsActive = true
+                }).ToList();
 
-            var keys = normalized.Select(k => new TranslationKey
+            if (keys.Count == 0)
             {
-                KeyName = k.KeyName!,
-                OriginalText = k.OriginalText!,
-                ProjectId = k.ProjectId,
-                CreatedByEmpId = empId,
-                CreatedAt = DateTime.UtcNow,
-                IsActive = true
-            }).ToList();
+                return new
+                {
+                    message = "No new keys to add.",
+                    keyIds = Array.Empty<int>()
+                };
+            }
 
             await _repo.AddKeys(keys);
 
@@ -130,6 +138,99 @@ namespace TranslationService.Services
             await _repo.UpsertBulkAsync(normalizedItems, existing, empId);
 
             return "Translations saved successfully.";
+        }
+
+        public async Task<string> InsertTranslationAsync(AddTranslationRequest request, string empId)
+        {
+            if (request.KeyId <= 0)
+                throw new Exception("Valid KeyId is required.");
+
+            if (string.IsNullOrWhiteSpace(request.LanguageCode))
+                throw new Exception("LanguageCode is required.");
+
+            var language = request.LanguageCode.Trim().ToUpper();
+
+            var keyExists = await _repo.TranslationKeyExistsAsync(request.KeyId);
+            if (!keyExists)
+                throw new Exception("Translation key not found.");
+
+            var languageExists = await _repo.LanguageExistsAsync(language);
+            if (!languageExists)
+                throw new Exception($"Language '{request.LanguageCode}' is not supported. Supported languages: en, es, fr, de, ja");
+
+            var existing = await _repo.GetTranslationValueAsync(request.KeyId, language);
+
+            if (existing != null)
+            {
+                existing.Value = request.Value;
+                existing.UpdatedByEmpId = empId;
+                existing.UpdatedAt = DateTime.UtcNow;
+                await _repo.SaveChangesAsync();
+            }
+            else
+            {
+                var translation = new TranslationValue
+                {
+                    TranslationKeyId = request.KeyId,
+                    LanguageCode = language,
+                    Value = request.Value,
+                    UpdatedByEmpId = empId,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                await _repo.SaveTranslationAsync(translation);
+            }
+
+            return "Translation saved successfully.";
+        }
+
+        public async Task<object> GetTranslationAsync(int keyId, string languageCode)
+        {
+            if (keyId <= 0)
+                throw new Exception("Valid KeyId is required.");
+
+            if (string.IsNullOrWhiteSpace(languageCode))
+                throw new Exception("LanguageCode is required.");
+
+            var language = languageCode.Trim().ToUpper();
+
+            var translation = await _repo.GetTranslationForUiAsync(keyId, language);
+
+            if (translation == null)
+            {
+                return new { value = "" };
+            }
+
+            return new
+            {
+                translation.TranslationKeyId,
+                translation.LanguageCode,
+                translation.Value
+            };
+        }
+
+        public async Task<object> GetAllTranslationsAsync(int keyId)
+        {
+            if (keyId <= 0)
+                throw new Exception("Valid keyId is required.");
+
+            var translations = await _repo.GetTranslationsByKeyAsync(keyId);
+
+            return translations.Select(t => new
+            {
+                t.LanguageCode,
+                t.Value
+            });
+        }
+
+        public async Task<List<TranslationKeyWithValueDto>> GetKeysWithTranslationsAsync(string languageCode)
+        {
+            if (string.IsNullOrWhiteSpace(languageCode))
+                throw new Exception("LanguageCode is required.");
+
+            var language = languageCode.Trim().ToUpper();
+
+            return await _repo.GetKeysWithTranslationsAsync(language);
         }
 
         public async Task<string> UpsertTranslationsV2Async(BulkTranslationRequestV2 request, string empId)
