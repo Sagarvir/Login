@@ -28,8 +28,6 @@ namespace login1.Controllers
                 try
                 {
                     var empId = User.FindFirst("empId")?.Value;
-                    if (string.IsNullOrEmpty(empId))
-                        return Unauthorized("Invalid token.");
 
                     var result = await _translationService.InsertTranslationAsync(request, empId);
                     return Ok(result);

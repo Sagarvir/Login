@@ -162,10 +162,7 @@ namespace TranslationService.Services
 
             if (existing != null)
             {
-                existing.Value = request.Value;
-                existing.UpdatedByEmpId = empId;
-                existing.UpdatedAt = DateTime.UtcNow;
-                await _repo.SaveChangesAsync();
+                throw new Exception($"Translation already exists for KeyId {request.KeyId} and Language '{language}'.");
             }
             else
             {
