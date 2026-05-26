@@ -55,7 +55,7 @@ namespace TranslationService.Services
             if (request.Keys == null || request.Keys.Count == 0)
                 throw new Exception("At least one key is required.");
 
-            var normalized = request.Keys.Select(k => new NormalizedKeyDto
+            var normalized = request.Keys.Select(k => new CreateKeyItem
             {
                 KeyName = k.KeyName?.Trim().ToUpper(),
                 OriginalText = k.OriginalText?.Trim(),

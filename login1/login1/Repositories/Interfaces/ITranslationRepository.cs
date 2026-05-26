@@ -9,7 +9,7 @@ namespace TranslationService.Repositories.Interfaces
         Task AddKey(TranslationKey key);
         Task AddKeys(List<TranslationKey> keys);
         Task<List<TranslationKey>> GetAllKeys();
-        Task<List<(string KeyName, int ProjectId)>> GetExistingKeys(List<NormalizedKeyDto> keys);
+        Task<List<(string KeyName, int ProjectId)>> GetExistingKeys(List<CreateKeyItem> keys);
         Task<List<int>> GetValidKeyIdsAsync(List<int> keyIds);
         Task<List<TranslationValue>> GetExistingTranslationsAsync(List<int> keyIds);
         Task UpsertBulkAsync(

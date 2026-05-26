@@ -57,7 +57,7 @@ namespace TranslationService.Repositories
             return existing.Select(e => (e.KeyName, e.ProjectId)).ToList();
         }
 
-        public async Task<List<(string KeyName, int ProjectId)>> GetExistingKeys(List<NormalizedKeyDto> keys)
+        public async Task<List<(string KeyName, int ProjectId)>> GetExistingKeys(List<CreateKeyItem> keys)
         {
             var projectIds = keys.Select(k => k.ProjectId).Distinct().ToList();
             var keyNames = keys.Select(k => k.KeyName).Distinct().ToList();
