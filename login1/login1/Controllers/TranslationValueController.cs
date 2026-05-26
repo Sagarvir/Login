@@ -90,8 +90,6 @@ namespace login1.Controllers
         public async Task<IActionResult> UpsertTranslationsV2(BulkTranslationRequestV2 request)
         {
             var empId = User.FindFirst("empId")?.Value;
-            if (string.IsNullOrEmpty(empId))
-                return Unauthorized("Invalid token.");
 
             try
             {

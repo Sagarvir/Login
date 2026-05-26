@@ -144,7 +144,7 @@ namespace TranslationService.Services
 
             var existing = await _repo.GetExistingTranslationsAsync(validKeys);
 
-            await _repo.UpsertBulkAsync(validItems, existing, empId);
+            await _repo.InsertBulkAsync(validItems, existing, empId);
 
             if (invalidKeyIds.Count > 0)
             {
@@ -249,22 +249,22 @@ namespace TranslationService.Services
             if (request.Translations == null || request.Translations.Count == 0)
                 throw new Exception("At least one translation is required.");
 
-            var items = request.Translations;
+            
 
-            if (items.Any(t => t.KeyId <= 0))
+            if (request.Translations.Any(t => t.KeyId <= 0))
                 throw new Exception("Invalid KeyId.");
 
-            if (items.Any(t => string.IsNullOrWhiteSpace(t.LanguageCode)))
+            if (request.Translations.Any(t => string.IsNullOrWhiteSpace(t.LanguageCode)))
                 throw new Exception("LanguageCode required.");
 
-            var keyIds = items.Select(t => t.KeyId).Distinct().ToList();
+            var keyIds = request.Translations.Select(t => t.KeyId).Distinct().ToList();
 
             var validKeys = await _repo.GetValidKeyIdsAsync(keyIds);
 
             if (validKeys.Count != keyIds.Count)
                 throw new Exception("Some keys not found.");
 
-            var normalizedItems = items
+            var normalizedItems = request.Translations
                 .Select(t => new
                 {
                     t.KeyId,
@@ -276,7 +276,7 @@ namespace TranslationService.Services
 
             var existing = await _repo.GetExistingTranslationsAsync(keyIds);
 
-            await _repo.UpsertBulkAsync(normalizedItems, existing, empId);
+            await _repo.InsertBulkAsync(normalizedItems, existing, empId);
 
             return "Translations saved successfully.";
         }
