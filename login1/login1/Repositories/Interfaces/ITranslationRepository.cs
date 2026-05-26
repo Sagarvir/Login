@@ -12,7 +12,7 @@ namespace TranslationService.Repositories.Interfaces
         Task<List<(string KeyName, int ProjectId)>> GetExistingKeys(List<CreateKeyItem> keys);
         Task<List<int>> GetValidKeyIdsAsync(List<int> keyIds);
         Task<List<TranslationValue>> GetExistingTranslationsAsync(List<int> keyIds);
-        Task UpsertBulkAsync(
+        Task InsertBulkAsync(
             List<dynamic> items,
             List<TranslationValue> existing,
             string empId);

@@ -7,7 +7,7 @@ namespace TranslationService.Services.Interfaces
         Task<object> CreateKey(CreateKeyRequest request, string empId);
         Task<object> CreateKeys(CreateKeysRequest request, string empId);
         Task<object> GetAllKeys();
-        Task<string> UpsertTranslationsAsync(BulkTranslationRequest request, string empId);
+        Task<string> InsertTranslationsAsync(BulkTranslationRequest request, string empId);
 
         Task<string> InsertTranslationAsync(AddTranslationRequest request, string empId);
 

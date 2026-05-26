@@ -158,7 +158,7 @@ namespace TranslationService.Repositories
                 .ToListAsync();
         }
 
-        public async Task UpsertBulkAsync(
+        public async Task InsertBulkAsync(
             List<dynamic> items,
             List<TranslationValue> existing,
             string empId)
@@ -171,9 +171,10 @@ namespace TranslationService.Repositories
 
                 if (found != null)
                 {
-                    found.Value = item.Value;
-                    found.UpdatedByEmpId = empId;
-                    found.UpdatedAt = DateTime.UtcNow;
+                    //found.Value = item.Value;
+                    //found.UpdatedByEmpId = empId;
+                    //found.UpdatedAt = DateTime.UtcNow;
+                    continue;
                 }
                 else
                 {
