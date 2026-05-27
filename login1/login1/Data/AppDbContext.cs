@@ -1,6 +1,10 @@
 ﻿using login1.Models;
 using Microsoft.EntityFrameworkCore;
 
+using System.Data;
+using TranslationService.Models;
+
+
 namespace login1.Data
 {
     public class AppDbContext : DbContext
@@ -19,6 +23,7 @@ namespace login1.Data
         public DbSet<TranslationValue> TranslationValues { get; set; }
         public DbSet<Project> Projects { get; set; }
         public DbSet<KeyProject> KeyProjects { get; set; }
+        public DbSet<TranslationPublish> TranslationPublishes { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);

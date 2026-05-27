@@ -283,7 +283,6 @@ export class TranslationTableComponent implements OnInit, AfterViewInit {
   saveTranslations(): void {
     this.executeTableSave();
   }
-
   executeTableSave(): void {
     console.log('Current table data:', this.dataSource.data);
     console.log('Selected language:', this.selectedLanguage);

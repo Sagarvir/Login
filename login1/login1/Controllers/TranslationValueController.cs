@@ -115,6 +115,19 @@ namespace login1.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        [HttpPost("publish")]
+        [Authorize(Roles = "Admin,Creator")]
+        public async Task<IActionResult> PublishTranslations()
+        {
+            var result = await _translationService.PublishTranslationsAsync();
+
+            if (!result.Success)
+            {
+                return BadRequest(result);
+            }
+
+            return Ok(result);
+        }
     }
 }
 

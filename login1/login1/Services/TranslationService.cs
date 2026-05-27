@@ -1,5 +1,16 @@
+
 using login1.Models;
 using TranslationService.DTO.Translation;
+
+using login1.Data;
+using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
+using System.Xml.Linq;
+using TranslationService.DTO.Translation;
+using TranslationService.DTO.Translation;
+using TranslationService.Models;
+using TranslationService.Repositories;
+
 using TranslationService.Repositories.Interfaces;
 using TranslationService.Services.Interfaces;
 
@@ -8,10 +19,14 @@ namespace TranslationService.Services
     public class TranslationService : ITranslationService
     {
         private readonly ITranslationRepository _repo;
+        private readonly AppDbContext _context;
+        private readonly IWebHostEnvironment _env;
 
-        public TranslationService(ITranslationRepository repo)
+        public TranslationService(ITranslationRepository repo, AppDbContext context, IWebHostEnvironment env)
         {
             _repo = repo;
+            _context = context;
+            _env = env;
         }
 
         public async Task<object> CreateKey(CreateKeyRequest request, string empId)
@@ -313,6 +328,145 @@ namespace TranslationService.Services
             }
 
             await _repo.DeleteKeyAsync(key);
+        }
+        public async Task<PublishTranslationResponse> PublishTranslationsAsync()
+        {
+
+            var translations =
+                        await _repo
+        .GetAllTranslationsForPublishAsync();
+
+            if (!translations.Any())
+            {
+                return new PublishTranslationResponse
+                {
+                    Success = false,
+                    Message = "No translations found"
+                };
+            }
+
+            var version =
+                $"v{DateTime.UtcNow:yyyyMMddHHmmss}";
+
+            var publishFolder =
+                Path.Combine(
+                    _env.ContentRootPath,
+                    "PublishedTranslations",
+                    version
+                );
+
+            Directory.CreateDirectory(publishFolder);
+
+            var groupedTranslations =
+                translations.GroupBy(t => t.Language.Code);
+
+            int fileCount = 0;
+
+            foreach (var group in groupedTranslations)
+            {
+                var languageCode = group.Key;
+
+                // JSON Generation
+
+                var jsonDictionary =
+                    group.ToDictionary(
+                        t => t.TranslationKey.KeyName,
+                        t => t.Value
+                    );
+
+                var json =
+                    JsonSerializer.Serialize(
+                        jsonDictionary,
+                        new JsonSerializerOptions
+                        {
+                            WriteIndented = true
+                        });
+
+                var jsonPath =
+                    Path.Combine(
+                        publishFolder,
+                        $"{languageCode}.json"
+                    );
+
+                await File.WriteAllTextAsync(
+                    jsonPath,
+                    json);
+
+                fileCount++;
+
+                // XLF Generation
+
+                var xlf =
+                    new XDocument(
+                        new XElement("xliff",
+                            new XAttribute("version", "1.2"),
+
+                            new XElement("file",
+                                new XAttribute(
+                                    "source-language",
+                                    "en-US"),
+
+                                new XAttribute(
+                                    "target-language",
+                                    languageCode),
+
+                                new XElement("body",
+
+                                    group.Select(t =>
+
+                                        new XElement("trans-unit",
+                                            new XAttribute(
+                                                "id",
+                                                t.TranslationKey.KeyName),
+
+                                            new XElement(
+                                                "source",
+                                                t.TranslationKey.KeyName),
+
+                                            new XElement(
+                                                "target",
+                                                t.Value)
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    );
+
+                var xlfPath =
+                    Path.Combine(
+                        publishFolder,
+                        $"{languageCode}.xlf"
+                    );
+
+                xlf.Save(xlfPath);
+
+                fileCount++;
+            }
+
+            // Save publish history
+
+            var publishRecord =
+                new TranslationPublish
+                {
+                    Version = version,
+                    PublishedAt = DateTime.UtcNow,
+                    PublishedBy = "Creator",
+                    FileCount = fileCount
+                };
+
+            _context.TranslationPublishes
+                .Add(publishRecord);
+
+            await _context.SaveChangesAsync();
+
+            return new PublishTranslationResponse
+            {
+                Success = true,
+                Version = version,
+                FileCount = fileCount,
+                Message = "Translations published successfully"
+            };
         }
     }
 }

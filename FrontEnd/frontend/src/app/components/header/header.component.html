@@ -25,17 +25,15 @@
         <mat-icon>save</mat-icon>
         <span>{{ isSaving ? 'Saving...' : 'Save Translations' }}</span>
       </button>
+
       <button
         mat-raised-button
-        (click)="goToAddLanguage()"
-        *ngIf="isAdmin()"
-        class="add-language-btn"
-        matTooltip="Add a new language"
+        class="save-btn"
+        (click)="publishTranslations()"
       >
-        <mat-icon>language</mat-icon>
-        <span>Add Language</span>
+        <mat-icon>publish</mat-icon>
+        <span>Publish Translations</span>
       </button>
-        
     </div>
   </div>
 </mat-toolbar>

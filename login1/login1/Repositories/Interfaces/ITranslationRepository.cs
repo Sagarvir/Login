@@ -27,5 +27,6 @@ namespace TranslationService.Repositories.Interfaces
         Task<TranslationKey?> GetKeyByIdAsync(int id);
         Task DeleteValuesAsync(List<TranslationValue> values);
         Task DeleteKeyAsync(TranslationKey key);
+        Task<List<TranslationValue>> GetAllTranslationsForPublishAsync();
     }
 }

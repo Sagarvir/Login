@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
@@ -18,7 +17,6 @@ import { AuthService } from '../../core/services/auth.service';
     MatToolbarModule,
     MatButtonModule,
     MatIconModule,
-    MatMenuModule,
     MatTooltipModule,
     MatSnackBarModule,
   ],
@@ -57,13 +55,33 @@ export class HeaderComponent implements OnInit {
   this.translationService.requestSave();
 }
 
-  isAdmin(): boolean {
-    return this.userInfo.role === 'Admin';
-  }
+publishTranslations(): void {
+  this.translationService.publishTranslations().subscribe({
+    next: (res: any) => {
+      console.log('Publish successful', res);
 
-  goToAddLanguage(): void {
-    this.router.navigate(['/admin/add-language']);
-  }
+      this.snackBar.open(
+        `Published ${res.fileCount} files successfully`,
+        'Close',
+        {
+          duration: 3000
+        }
+      );
+    },
+
+    error: (error) => {
+      console.error('Publish failed', error);
+
+      this.snackBar.open(
+        'Publish failed',
+        'Close',
+        {
+          duration: 3000
+        }
+      );
+    }
+  });
+}
 
   logout(): void {
     // Clear authentication tokens

@@ -333,6 +333,12 @@ notifySaveCompleted(): void {
 
     return this.upsertTranslations(pending.modifiedTranslations);
   }
+  publishTranslations(): Observable<any> {
+  return this.http.post(
+    `${this.translationValueUrl}/publish`,
+    {}
+  );
+}
 
   getStats(): DashboardStats {
     const totalKeys = this.translations.filter((t) => t.translationKey?.trim()).length;
