@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff version="1.2">
+  <file source-language="en" target-language="EN">
+    <body>
+      <trans-unit id="4">
+        <source>good morning</source>
+        <target>good morning</target>
+      </trans-unit>
+      <trans-unit id="2">
+        <source>home page</source>
+        <target>home page</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

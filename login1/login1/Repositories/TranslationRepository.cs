@@ -222,5 +222,20 @@ namespace TranslationService.Repositories
                 .Include(tv => tv.TranslationKey)
                 .ToListAsync();
         }
+        public async Task<List<TranslationValue>>GetTranslationsByLanguageAsync(string languageCode)
+        {
+            return await _context.TranslationValues
+
+                .Include(x => x.TranslationKey)
+
+                .Include(x => x.Language)
+
+                .Where(x =>
+                    x.LanguageCode.ToUpper()
+                    ==
+                    languageCode.ToUpper())
+
+                .ToListAsync();
+        }
     }
 }

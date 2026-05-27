@@ -20,6 +20,7 @@ namespace TranslationService.Services.Interfaces
         Task<string> UpsertTranslationsV2Async(BulkTranslationRequestV2 request, string empId);
 
         Task<PublishTranslationResponse> PublishTranslationsAsync();
+        Task<PublishTranslationResponse> PublishLanguageAsync(string languageCode);
 
     }
 }

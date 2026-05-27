@@ -83,6 +83,43 @@ publishTranslations(): void {
   });
 }
 
+publishCurrentLanguage(): void {
+
+  const languageCode =
+      this.translationService
+          .getSelectedLanguage();
+
+  this.translationService
+      .publishLanguage(
+          languageCode
+      )
+      .subscribe({
+
+          next: (res:any) => {
+
+              this.snackBar.open(
+                  `${languageCode} published successfully`,
+                  'Close',
+                  {
+                      duration:3000
+                  }
+              );
+          },
+
+          error: () => {
+
+              this.snackBar.open(
+                  'Publish failed',
+                  'Close',
+                  {
+                      duration:3000
+                  }
+              );
+          }
+      });
+}
+
+
   logout(): void {
     // Clear authentication tokens
     localStorage.removeItem('accessToken');

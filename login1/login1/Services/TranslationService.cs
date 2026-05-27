@@ -468,5 +468,121 @@ namespace TranslationService.Services
                 Message = "Translations published successfully"
             };
         }
+        public async Task<PublishTranslationResponse> PublishLanguageAsync(string languageCode)
+        {
+            var translations =
+                await _repo
+                    .GetTranslationsByLanguageAsync(
+                        languageCode);
+
+            if (!translations.Any())
+            {
+                return new PublishTranslationResponse
+                {
+                    Success = false,
+                    Message =
+                        $"No translations found for {languageCode}"
+                };
+            }
+
+            var version =
+                $"v{DateTime.UtcNow:yyyyMMddHHmmss}";
+
+            var publishFolder =
+                Path.Combine(
+                    Directory.GetCurrentDirectory(),
+                    "PublishedTranslations",
+                    languageCode,
+                    version
+                );
+
+            Directory.CreateDirectory(
+                publishFolder);
+
+            var jsonDictionary =
+                translations.ToDictionary(
+                    t => t.TranslationKey!.KeyName,
+                    t => t.Value
+                );
+
+            var json =
+                JsonSerializer.Serialize(
+                    jsonDictionary,
+                    new JsonSerializerOptions
+                    {
+                        WriteIndented = true
+                    });
+
+            var jsonPath =
+                Path.Combine(
+                    publishFolder,
+                    $"{languageCode}.json");
+
+            await File.WriteAllTextAsync(
+                jsonPath,
+                json);
+
+            var xlf =
+                new XDocument(
+                    new XElement(
+                        "xliff",
+                        new XAttribute(
+                            "version",
+                            "1.2"),
+
+                        new XElement(
+                            "file",
+
+                            new XAttribute(
+                                "source-language",
+                                "en"),
+
+                            new XAttribute(
+                                "target-language",
+                                languageCode),
+
+                            new XElement(
+                                "body",
+
+                                translations.Select(t =>
+
+                                    new XElement(
+                                        "trans-unit",
+
+                                        new XAttribute(
+                                            "id",
+                                            t.TranslationKey!.Id),
+
+                                        new XElement(
+                                            "source",
+                                            t.TranslationKey
+                                             .OriginalText),
+
+                                        new XElement(
+                                            "target",
+                                            t.Value)
+                                    )
+                                )
+                            )
+                        )
+                    )
+                );
+
+            var xlfPath =
+                Path.Combine(
+                    publishFolder,
+                    $"{languageCode}.xlf");
+
+            xlf.Save(xlfPath);
+
+            return new PublishTranslationResponse
+            {
+                Success = true,
+                Version = version,
+                FileCount = 2,
+                Message =
+                    $"{languageCode} published successfully"
+            };
+        }
     }
 }

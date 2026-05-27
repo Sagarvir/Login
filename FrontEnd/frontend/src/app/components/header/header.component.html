@@ -32,8 +32,20 @@
         (click)="publishTranslations()"
       >
         <mat-icon>publish</mat-icon>
-        <span>Publish Translations</span>
+        <span>Publish All Translations</span>
       </button>
+
+      <button
+  mat-raised-button
+  class="save-btn"
+  color="accent"
+  (click)="publishCurrentLanguage()">
+
+  <mat-icon>publish</mat-icon>
+
+  Publish Current Language
+</button>
+
     </div>
   </div>
 </mat-toolbar>
