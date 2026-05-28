@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff version="1.2">
+  <file source-language="en-US" target-language="ja">
+    <body>
+      <trans-unit id="PHONE_KEY">
+        <source>PHONE_KEY</source>
+        <target>jrkeotg</target>
+      </trans-unit>
+      <trans-unit id="EMAIL_KEY">
+        <source>EMAIL_KEY</source>
+        <target>Emaila</target>
+      </trans-unit>
+      <trans-unit id="TELEPHONE_KEY">
+        <source>TELEPHONE_KEY</source>
+        <target>Telephoneer</target>
+      </trans-unit>
+      <trans-unit id="SOMA_KEY">
+        <source>SOMA_KEY</source>
+        <target>mvksmk</target>
+      </trans-unit>
+      <trans-unit id="RAMA_KEY">
+        <source>RAMA_KEY</source>
+        <target>jkdsnjkg</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

@@ -28,5 +28,6 @@ namespace Translation.DAO.Repositories.Interfaces
         Task DeleteValuesAsync(List<TranslationValue> values);
         Task DeleteKeyAsync(TranslationKey key);
         Task<List<TranslationValue>> GetAllTranslationsForPublishAsync();
+        Task SavePublishRecordAsync(TranslationPublish publishRecord);
     }
 }

@@ -224,5 +224,11 @@ namespace Translation.DAO.Repositories
                 .Include(tv => tv.TranslationKey)
                 .ToListAsync();
         }
+
+        public async Task SavePublishRecordAsync(TranslationPublish publishRecord)
+        {
+            _context.TranslationPublishes.Add(publishRecord);
+            await _context.SaveChangesAsync();
+        }
     }
 }
