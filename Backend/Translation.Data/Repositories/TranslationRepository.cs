@@ -217,5 +217,12 @@ namespace Translation.DAO.Repositories
             _context.TranslationKeys.Remove(key);
             await _context.SaveChangesAsync();
         }
+        public async Task<List<TranslationValue>> GetAllTranslationsForPublishAsync()
+        {
+            return await _context.TranslationValues
+                .Include(tv => tv.Language)
+                .Include(tv => tv.TranslationKey)
+                .ToListAsync();
+        }
     }
 }

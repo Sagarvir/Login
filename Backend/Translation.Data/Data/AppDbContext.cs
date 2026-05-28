@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Data;
 using Translation.Models.Entities;
+
 
 namespace Translation.DAO.Data
 {
@@ -19,6 +21,7 @@ namespace Translation.DAO.Data
         public DbSet<TranslationValue> TranslationValues { get; set; }
         public DbSet<Project> Projects { get; set; }
         public DbSet<KeyProject> KeyProjects { get; set; }
+        public DbSet<TranslationPublish> TranslationPublishes { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
@@ -68,7 +71,7 @@ namespace Translation.DAO.Data
             .HasForeignKey(t => t.TranslationKeyId)
             .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<KeyProject>() 
+            modelBuilder.Entity<KeyProject>()
             .HasOne(kp => kp.Key)
             .WithMany(k => k.KeyProjects)
             .HasForeignKey(kp => kp.KeyId);

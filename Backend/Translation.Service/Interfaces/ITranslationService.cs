@@ -18,5 +18,6 @@ namespace Translation.Service.Interfaces
         Task DeleteKey(int id);
 
         Task<string> UpsertTranslationsV2Async(BulkTranslationRequestV2 request, string empId);
+        Task<PublishTranslationResponse> PublishTranslationsAsync();
     }
 }
