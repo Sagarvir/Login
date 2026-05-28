@@ -1,7 +1,7 @@
 nav.admin-nav {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
+  
+  justify-content: space-between;
   align-items: center;
   gap: 10px;
   background: #ffffff;
@@ -43,4 +43,46 @@ nav.admin-nav {
 
 .logout-button:hover {
   background: #e55a2b;
+}
+.logo-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+}
+
+.logo-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0f4c81;
+  color: #fff;
+}
+
+.header-info h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #475569;
+}
+
+.role-icon {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+  color: #1f5e97;
+}
+
+.role {
+  font-weight: 600;
 }

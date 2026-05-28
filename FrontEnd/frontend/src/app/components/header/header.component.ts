@@ -25,7 +25,7 @@ import { AuthService } from '../../core/services/auth.service';
 })
 export class HeaderComponent implements OnInit {
   userInfo = {
-    userId: '101',
+    userId: ' ',
     language: 'EN',
     role: 'Creator',
   };
@@ -41,6 +41,31 @@ export class HeaderComponent implements OnInit {
   
   {
     this.userInfo.role = this.authService.getUserRole() || 'Creator';
+    const role = this.authService
+  .getUserRole()
+  ?.trim()
+  .toLowerCase();
+
+switch (role) {
+  case 'admin':
+    this.userInfo.userId = '1';
+    break;
+
+  case 'translator':
+    this.userInfo.userId = '2';
+    break;
+
+  case 'creator':
+    this.userInfo.userId = '3';
+    break;
+
+  case 'viewer':
+    this.userInfo.userId = '4';
+    break;
+
+  default:
+    this.userInfo.userId = '0';
+}
   }
   ngOnInit(): void {
     this.translationService.saveCompleted$.subscribe(() => {
