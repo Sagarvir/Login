@@ -1,19 +1,6 @@
 <mat-toolbar class="header">
   <div class="toolbar-content">
-    <div class="logo-section">
-      <div class="logo-badge">
-        <mat-icon>public</mat-icon>
-      </div>
-      <div class="header-info">
-        <h1>Translation Management</h1>
-        <div class="user-info">
-          <span>User: {{ userInfo.userId }} • Language: {{ userInfo.language }}</span>
-          <span class="separator">•</span>
-          <mat-icon class="role-icon" matTooltip="Creator Role">verified_user</mat-icon>
-          <span class="role">{{ userInfo.role }}</span>
-        </div>
-      </div>
-    </div>
+    
 
     <div class="actions">
       <button
@@ -25,17 +12,27 @@
         <mat-icon>save</mat-icon>
         <span>{{ isSaving ? 'Saving...' : 'Save Translations' }}</span>
       </button>
+
       <button
         mat-raised-button
-        (click)="goToAddLanguage()"
-        *ngIf="isAdmin()"
-        class="add-language-btn"
-        matTooltip="Add a new language"
+        class="save-btn"
+        (click)="publishTranslations()"
       >
-        <mat-icon>language</mat-icon>
-        <span>Add Language</span>
+        <mat-icon>publish</mat-icon>
+        <span>Publish All Translations</span>
       </button>
-        
+
+      <button
+  mat-raised-button
+  class="save-btn"
+  color="accent"
+  (click)="publishCurrentLanguage()">
+
+  <mat-icon>publish</mat-icon>
+
+  Publish Current Language
+</button>
+
     </div>
   </div>
 </mat-toolbar>

@@ -12,53 +12,29 @@
 
   .toolbar-content {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
     width: 100%;
     gap: 20px;
   }
 
-  .logo-section {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    flex: 1;
 
-    .logo-badge {
-      width: 44px;
-      height: 44px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #0f4c81;
-      color: #ffffff;
 
-      mat-icon {
-        font-size: 22px;
-        width: 22px;
-        height: 22px;
-      }
-    }
+   .header-info h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a; /* IMPORTANT: ensures visibility */
+}
 
-    .header-info {
-      h1 {
-        margin: 0;
-        font-size: 22px;
-        font-weight: 700;
-        letter-spacing: -0.2px;
-      }
-
-      .user-info {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 13px;
-        color: #6b7a90;
-
-        .separator {
-          margin: 0 4px;
-        }
+    .user-info {
+  font-size: 13px;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
 
         .role-icon {
           font-size: 14px;
@@ -72,8 +48,8 @@
           font-weight: 600;
         }
       }
-    }
-  }
+    
+  
 
   .actions {
     display: flex;
@@ -125,7 +101,7 @@
       }
     }
   }
-}
+
 
 @media (max-width: 768px) {
   .header {

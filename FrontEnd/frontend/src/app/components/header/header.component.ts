@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
@@ -18,7 +17,6 @@ import { AuthService } from '../../core/services/auth.service';
     MatToolbarModule,
     MatButtonModule,
     MatIconModule,
-    MatMenuModule,
     MatTooltipModule,
     MatSnackBarModule,
   ],
@@ -27,7 +25,7 @@ import { AuthService } from '../../core/services/auth.service';
 })
 export class HeaderComponent implements OnInit {
   userInfo = {
-    userId: '101',
+    userId: ' ',
     language: 'EN',
     role: 'Creator',
   };
@@ -43,6 +41,31 @@ export class HeaderComponent implements OnInit {
   
   {
     this.userInfo.role = this.authService.getUserRole() || 'Creator';
+    const role = this.authService
+  .getUserRole()
+  ?.trim()
+  .toLowerCase();
+
+switch (role) {
+  case 'admin':
+    this.userInfo.userId = '1';
+    break;
+
+  case 'translator':
+    this.userInfo.userId = '2';
+    break;
+
+  case 'creator':
+    this.userInfo.userId = '3';
+    break;
+
+  case 'viewer':
+    this.userInfo.userId = '4';
+    break;
+
+  default:
+    this.userInfo.userId = '0';
+}
   }
   ngOnInit(): void {
     this.translationService.saveCompleted$.subscribe(() => {
@@ -57,13 +80,70 @@ export class HeaderComponent implements OnInit {
   this.translationService.requestSave();
 }
 
-  isAdmin(): boolean {
-    return this.userInfo.role === 'Admin';
-  }
+publishTranslations(): void {
+  this.translationService.publishTranslations().subscribe({
+    next: (res: any) => {
+      console.log('Publish successful', res);
 
-  goToAddLanguage(): void {
-    this.router.navigate(['/admin/add-language']);
-  }
+      this.snackBar.open(
+        `Published ${res.fileCount} files successfully`,
+        'Close',
+        {
+          duration: 3000
+        }
+      );
+    },
+
+    error: (error) => {
+      console.error('Publish failed', error);
+
+      this.snackBar.open(
+        'Publish failed',
+        'Close',
+        {
+          duration: 3000
+        }
+      );
+    }
+  });
+}
+
+publishCurrentLanguage(): void {
+
+  const languageCode =
+      this.translationService
+          .getSelectedLanguage();
+
+  this.translationService
+      .publishLanguage(
+          languageCode
+      )
+      .subscribe({
+
+          next: (res:any) => {
+
+              this.snackBar.open(
+                  `${languageCode} published successfully`,
+                  'Close',
+                  {
+                      duration:3000
+                  }
+              );
+          },
+
+          error: () => {
+
+              this.snackBar.open(
+                  'Publish failed',
+                  'Close',
+                  {
+                      duration:3000
+                  }
+              );
+          }
+      });
+}
+
 
   logout(): void {
     // Clear authentication tokens

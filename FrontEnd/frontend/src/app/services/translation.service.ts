@@ -43,6 +43,10 @@ notifySaveCompleted(): void {
   setSelectedLanguage(languageCode: string): void {
     this.selectedLanguageSubject.next(languageCode);
   }
+  
+  getSelectedLanguage(): string {
+  return this.selectedLanguageSubject.value;
+}
 
   setPendingSave(languageCode: string, modifiedTranslations: any[]): void {
     this.pendingSaveSubject.next({ languageCode, modifiedTranslations });
@@ -333,6 +337,21 @@ notifySaveCompleted(): void {
 
     return this.upsertTranslations(pending.modifiedTranslations);
   }
+  publishTranslations(): Observable<any> {
+  return this.http.post(
+    `${this.translationValueUrl}/publish`,
+    {}
+  );
+}
+publishLanguage(
+  languageCode: string
+): Observable<any> {
+
+  return this.http.post(
+    `${this.translationValueUrl}/publish/${languageCode}`,
+    {}
+  );
+}
 
   getStats(): DashboardStats {
     const totalKeys = this.translations.filter((t) => t.translationKey?.trim()).length;
