@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="Translation.API/Translation.API.csproj" Id="f285546c-a8f9-4a5a-b1df-ee1669bc509a" />
+  <Project Path="Translation.Contracts/Translation.Contracts.csproj" Id="f7a11e90-9962-44ba-8196-1bd66981400a" />
+  <Project Path="Translation.Data/Translation.DAO.csproj" Id="b761303c-5cf1-4c18-84dd-07e9193ce06c" />
+  <Project Path="Translation.Models/Translation.Models.csproj" Id="8c922c8a-dc08-47a8-928b-caec307dc691" />
+  <Project Path="Translation.Service/Translation.Service.csproj" Id="5d2da7c5-6506-4394-b12b-695bf34c6bf2" />
+</Solution>
