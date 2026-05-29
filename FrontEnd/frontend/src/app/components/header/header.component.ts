@@ -1,4 +1,11 @@
-import { Component,OnInit } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  NgZone,
+  ChangeDetectorRef,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
@@ -6,12 +13,14 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { TranslationService } from '../../services/translation.service';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-header',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     MatToolbarModule,
@@ -23,140 +32,120 @@ import { AuthService } from '../../core/services/auth.service';
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss',
 })
-export class HeaderComponent implements OnInit {
+export class HeaderComponent implements OnInit, OnDestroy {
   userInfo = {
-    userId: ' ',
+    userId: '0',
     language: 'EN',
     role: 'Creator',
   };
 
   isSaving = false;
 
+  private saveCompletedSub: Subscription | null = null;
+  private saveTimeoutId: ReturnType<typeof setTimeout> | null = null;
+
   constructor(
     private translationService: TranslationService,
     private snackBar: MatSnackBar,
     private router: Router,
-    private authService: AuthService
-  ) 
-  
-  {
+    private authService: AuthService,
+    private ngZone: NgZone,
+    private cdr: ChangeDetectorRef
+  ) {
     this.userInfo.role = this.authService.getUserRole() || 'Creator';
-    const role = this.authService
-  .getUserRole()
-  ?.trim()
-  .toLowerCase();
 
-switch (role) {
-  case 'admin':
-    this.userInfo.userId = '1';
-    break;
-
-  case 'translator':
-    this.userInfo.userId = '2';
-    break;
-
-  case 'creator':
-    this.userInfo.userId = '3';
-    break;
-
-  case 'viewer':
-    this.userInfo.userId = '4';
-    break;
-
-  default:
-    this.userInfo.userId = '0';
-}
+    const role = this.authService.getUserRole()?.trim().toLowerCase();
+    const roleIdMap: Record<string, string> = {
+      admin: '1',
+      translator: '2',
+      creator: '3',
+      viewer: '4',
+    };
+    this.userInfo.userId = roleIdMap[role ?? ''] ?? '0';
   }
+
   ngOnInit(): void {
-    this.translationService.saveCompleted$.subscribe(() => {
-    this.isSaving = false;
-  });
+    this.saveCompletedSub = this.translationService.saveCompleted$.subscribe(() => {
+      // Run inside Angular zone, then explicitly trigger change detection.
+      // This prevents NG0100 by ensuring the state change is processed
+      // in a controlled change detection pass, not mid-cycle.
+      this.ngZone.run(() => {
+        this.isSaving = false;
+        this.clearSaveTimeout();
+        this.cdr.detectChanges();
+      });
+    });
   }
 
- saveTranslations(): void {
-  if (this.isSaving) return;
+  ngOnDestroy(): void {
+    this.saveCompletedSub?.unsubscribe();
+    this.clearSaveTimeout();
+  }
 
-  this.isSaving = true;
-  this.translationService.requestSave();
-}
+  saveTranslations(): void {
+    if (this.isSaving) return;
 
-publishTranslations(): void {
-  this.translationService.publishTranslations().subscribe({
-    next: (res: any) => {
-      console.log('Publish successful', res);
+    this.isSaving = true;
+    this.cdr.detectChanges();
 
-      this.snackBar.open(
-        `Published ${res.fileCount} files successfully`,
-        'Close',
-        {
-          duration: 3000
+    // Safety net: reset after 15s if saveCompleted$ never emits
+    this.saveTimeoutId = setTimeout(() => {
+      this.ngZone.run(() => {
+        if (this.isSaving) {
+          this.isSaving = false;
+          this.cdr.detectChanges();
+          this.snackBar.open('Save timed out. Please try again.', 'Close', {
+            duration: 3000,
+          });
         }
-      );
-    },
-
-    error: (error) => {
-      console.error('Publish failed', error);
-
-      this.snackBar.open(
-        'Publish failed',
-        'Close',
-        {
-          duration: 3000
-        }
-      );
-    }
-  });
-}
-
-publishCurrentLanguage(): void {
-
-  const languageCode =
-      this.translationService
-          .getSelectedLanguage();
-
-  this.translationService
-      .publishLanguage(
-          languageCode
-      )
-      .subscribe({
-
-          next: (res:any) => {
-
-              this.snackBar.open(
-                  `${languageCode} published successfully`,
-                  'Close',
-                  {
-                      duration:3000
-                  }
-              );
-          },
-
-          error: () => {
-
-              this.snackBar.open(
-                  'Publish failed',
-                  'Close',
-                  {
-                      duration:3000
-                  }
-              );
-          }
       });
-}
+    }, 15000);
 
+    this.translationService.requestSave();
+  }
+
+  publishTranslations(): void {
+    this.translationService.publishTranslations().subscribe({
+      next: (res: any) => {
+        this.snackBar.open(
+          `Published ${res?.fileCount ?? 'all'} files successfully`,
+          'Close',
+          { duration: 3000 }
+        );
+      },
+      error: () => {
+        this.snackBar.open('Publish failed', 'Close', { duration: 3000 });
+      },
+    });
+  }
+
+  publishCurrentLanguage(): void {
+    const languageCode = this.translationService.getSelectedLanguage();
+    this.translationService.publishLanguage(languageCode).subscribe({
+      next: () => {
+        this.snackBar.open(
+          `${languageCode} published successfully`,
+          'Close',
+          { duration: 3000 }
+        );
+      },
+      error: () => {
+        this.snackBar.open('Publish failed', 'Close', { duration: 3000 });
+      },
+    });
+  }
 
   logout(): void {
-    // Clear authentication tokens
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
+    this.snackBar.open('You have been logged out', 'Close', { duration: 3000 });
+    setTimeout(() => this.router.navigate(['/']), 1000);
+  }
 
-    this.snackBar.open('You have been logged out', 'Close', {
-      duration: 3000,
-    });
-
-    // Navigate back to login page
-    setTimeout(() => {
-      this.router.navigate(['/']);
-    }, 1000);
+  private clearSaveTimeout(): void {
+    if (this.saveTimeoutId !== null) {
+      clearTimeout(this.saveTimeoutId);
+      this.saveTimeoutId = null;
+    }
   }
 }

@@ -1,4 +1,10 @@
-import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  AfterViewInit,
+  ViewChild,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
@@ -8,12 +14,12 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatPaginatorModule } from '@angular/material/paginator';
-import { MatPaginator } from '@angular/material/paginator';
+import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
 import { MatSortModule } from '@angular/material/sort';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatCardModule } from '@angular/material/card';
 import { MatSelectModule } from '@angular/material/select';
+import { Subscription } from 'rxjs';
 import { TranslationService } from '../../services/translation.service';
 import { LanguageService } from '../../services/language.service';
 import { Translation, Language } from '../../models/translation.model';
@@ -42,7 +48,7 @@ import { AddTranslationDialogComponent } from '../add-translation-dialog/add-tra
   templateUrl: './translation-table.component.html',
   styleUrl: './translation-table.component.scss',
 })
-export class TranslationTableComponent implements OnInit, AfterViewInit {
+export class TranslationTableComponent implements OnInit, AfterViewInit, OnDestroy {
   displayedColumns: string[] = [
     'translationKey',
     'originalText',
@@ -50,13 +56,18 @@ export class TranslationTableComponent implements OnInit, AfterViewInit {
     'tags',
     'actions',
   ];
+
   dataSource = new MatTableDataSource<Translation>();
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
-  searchTerm = '';
   languages: Language[] = [];
-  selectedLanguage: string = 'EN';
-  translations: { [key: string]: string } = {};
+  selectedLanguage = 'EN';
+
+  // Dictionary of key -> translated value for the selected language
+  translationDict: { [key: string]: string } = {};
+
+  private saveRequestedSub: Subscription | null = null;
+  private translationsSub: Subscription | null = null;
 
   constructor(
     private translationService: TranslationService,
@@ -68,30 +79,33 @@ export class TranslationTableComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     this.loadLanguages();
 
-    // ✅ Load data from backend
-    this.translationService.loadTranslations().subscribe({
-      next: () => {
-        console.log('Translations loaded successfully');
-      },
-      error: (err) => {
-        console.error('Failed to load translations in table', err);
-      }
-    });
+    // Keep table in sync with service translations$
+    this.translationsSub = this.translationService
+      .getTranslations()
+      .subscribe((translations) => {
+        this.dataSource.data = translations;
+        if (this.paginator) {
+          this.dataSource.paginator = this.paginator;
+        }
+      });
 
-    // ✅ Subscribe to data
-    this.translationService.getTranslations().subscribe((translations) => {
-      this.dataSource.data = translations;
-
-      if (this.paginator) {
-        this.dataSource.paginator = this.paginator;
-      }
-    });
-
-    // ✅ Subscribe to save requests from header
-    this.translationService.saveRequested$.subscribe(() => {
-      this.executeTableSave();
-    });
+    // Listen for save requests from the header.
+    // saveRequested$ is a plain Subject — will NOT fire on subscribe.
+    this.saveRequestedSub = this.translationService.saveRequested$.subscribe(
+      () => this.executeTableSave()
+    );
   }
+
+  ngAfterViewInit(): void {
+    this.dataSource.paginator = this.paginator;
+  }
+
+  ngOnDestroy(): void {
+    this.saveRequestedSub?.unsubscribe();
+    this.translationsSub?.unsubscribe();
+  }
+
+  // --- Language ---
 
   loadLanguages(): void {
     this.languageService.getLanguages().subscribe({
@@ -99,57 +113,74 @@ export class TranslationTableComponent implements OnInit, AfterViewInit {
         this.languages = languages;
         if (languages.length > 0) {
           this.selectedLanguage = languages[0].code;
-          this.loadTranslationsForLanguage(this.selectedLanguage);
+          this.translationService.setSelectedLanguage(this.selectedLanguage);
+          this.loadAllData(this.selectedLanguage);
         }
       },
-      error: (error) => {
-        console.error('Error loading languages:', error);
-      },
+      error: (err) => console.error('Failed to load languages', err),
     });
   }
 
-  ngAfterViewInit(): void {
-    this.dataSource.paginator = this.paginator;
+  onLanguageChange(): void {
+    this.translationService.setSelectedLanguage(this.selectedLanguage);
+    this.loadAllData(this.selectedLanguage);
   }
 
-  applyFilter(event: Event): void {
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.searchTerm = filterValue.trim().toLowerCase();
-    this.dataSource.filter = this.searchTerm;
+  // Loads both the table rows and the translation value dictionary for a language
+  private loadAllData(languageCode: string): void {
+    this.translationService.loadTranslations(languageCode).subscribe({
+      error: (err) => console.error('Failed to load translations', err),
+    });
+
+    this.translationService.getAllTranslations(languageCode).subscribe({
+      next: (dict) => {
+        this.translationDict = dict;
+        // Clear modified flags when loading fresh data
+        this.dataSource.data.forEach((item) => (item.isModified = false));
+      },
+      error: (err) => console.error('Failed to load translation dictionary', err),
+    });
   }
+
+  // --- Table helpers ---
+
+  applyFilter(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.dataSource.filter = value.trim().toLowerCase();
+  }
+
+  getTranslation(key: string): string {
+    return this.translationDict[key] || '';
+  }
+
+  markAsModified(element: Translation): void {
+    element.isModified = true;
+  }
+
+  // --- CRUD ---
 
   updateTranslation(index: number, translation: Translation): void {
     this.translationService.updateTranslation(index, translation).subscribe({
-      next: () => {
-        this.snackBar.open('Translation updated successfully', 'Close', {
-          duration: 2000,
-        });
-      },
+      next: () =>
+        this.snackBar.open('Translation updated', 'Close', { duration: 2000 }),
       error: (err) => {
-        const message = err.error?.message || err.message || 'Failed to update translation';
-        this.snackBar.open(message, 'Close', { duration: 3000 });
-      }
+        const msg = err.error?.message || err.message || 'Failed to update';
+        this.snackBar.open(msg, 'Close', { duration: 3000 });
+      },
     });
   }
 
   deleteTranslation(index: number): void {
     const dialogRef = this.dialog.open(DeleteConfirmDialogComponent);
-
-    dialogRef.afterClosed().subscribe((result) => {
-      if (!result) {
-        return;
-      }
-
+    dialogRef.afterClosed().subscribe((confirmed) => {
+      if (!confirmed) return;
       this.translationService.deleteTranslation(index).subscribe({
-        next: () => {
-          this.snackBar.open('Translation deleted successfully', 'Close', {
-            duration: 2000,
-          });
-        },
+        next: () =>
+          this.snackBar.open('Translation deleted', 'Close', { duration: 2000 }),
         error: (err) => {
-          const message = err.error?.message || err.message || 'Failed to delete translation';
-          this.snackBar.open(message, 'Close', { duration: 3000 });
-        }
+          const msg = err.error?.message || err.message || 'Failed to delete';
+          this.snackBar.open(msg, 'Close', { duration: 3000 });
+        },
       });
     });
   }
@@ -160,175 +191,97 @@ export class TranslationTableComponent implements OnInit, AfterViewInit {
     });
 
     dialogRef.afterClosed().subscribe((result: Translation | undefined) => {
-      if (!result) {
-        return;
-      }
+      if (!result) return;
 
       const newTranslation: Translation = {
-  translationKey: result.translationKey || '',
-  originalText: result.originalText || '',
-  translation: '',
-  tags: result.tags || '',
-  client: '',
-  project: ''
-};
+        translationKey: result.translationKey || '',
+        originalText: result.originalText || '',
+        translation: '',
+        tags: result.tags || '',
+        client: '',
+        project: '',
+      };
 
       this.translationService.addTranslation(newTranslation).subscribe({
         next: () => {
-          this.translationService.loadTranslations().subscribe();
-          this.snackBar.open('New translation added', 'Close', {
-            duration: 2000,
-          });
+          this.snackBar.open('Translation added', 'Close', { duration: 2000 });
+          this.loadAllData(this.selectedLanguage);
         },
         error: (err) => {
-          const message = err.error?.message || err.message || 'Failed to add translation';
-          this.snackBar.open(message, 'Close', { duration: 3000 });
-        }
+          const msg = err.error?.message || err.message || 'Failed to add translation';
+          this.snackBar.open(msg, 'Close', { duration: 3000 });
+        },
       });
     });
   }
 
-  loadTranslationsForLanguage(languageCode: string): void {
-    console.log('Loading translations for language:', languageCode);
-    this.translationService.getAllTranslations(languageCode).subscribe({
-      next: (translationDict) => {
-        this.translations = translationDict;
-        console.log('Translations loaded successfully for language:', languageCode);
-        console.log('Translation dictionary:', this.translations);
-        
-        // Mark all rows as not modified when fresh translations are loaded
-        this.dataSource.data.forEach((item) => {
-          item.isModified = false;
-        });
-      },
-      error: (error) => {
-        console.error('Error loading translations for language:', languageCode, error);
-        this.translations = {};
-      },
-    });
-  }
+  // --- Save ---
 
-  onLanguageChange(): void {
-    console.log('Language changed to:', this.selectedLanguage);
-    // Update the service's selected language
-    this.translationService.setSelectedLanguage(this.selectedLanguage);
-    // Load translations for the selected language in the service
-    this.translationService.loadTranslations(this.selectedLanguage).subscribe({
+  // Called by saveRequested$ subscription (from header Save button).
+  // Rule: notifySaveCompleted() must be called in every code path.
+  // When upsertTranslations() is called, it handles notification via finalize().
+  // All other exit paths (no changes, error before HTTP) call it explicitly.
+  executeTableSave(): void {
+    let modifiedTranslations: any[];
+
+    try {
+      modifiedTranslations = this.buildSavePayload();
+    } catch (err: any) {
+      this.snackBar.open(
+        err?.message || 'Failed to prepare save',
+        'Close',
+        { duration: 3000 }
+      );
+      // Must notify — header is waiting
+      this.translationService.notifySaveCompleted();
+      return;
+    }
+
+    if (modifiedTranslations.length === 0) {
+      this.snackBar.open('No changes to save', 'Close', { duration: 3000 });
+      // Must notify — header is waiting
+      this.translationService.notifySaveCompleted();
+      return;
+    }
+
+    // upsertTranslations calls notifySaveCompleted() in finalize() — do NOT call it again here
+    this.translationService.upsertTranslations(modifiedTranslations).subscribe({
       next: () => {
-        console.log('Translations reloaded for language:', this.selectedLanguage);
-        // Also load the translation dictionary for the table
-        this.loadTranslationsForLanguage(this.selectedLanguage);
+        this.dataSource.data.forEach((item) => (item.isModified = false));
+        this.snackBar.open('Translations saved successfully!', 'Close', {
+          duration: 3000,
+        });
+        // Reload dictionary so table shows the newly saved values
+        this.translationService
+          .getAllTranslations(this.selectedLanguage)
+          .subscribe({
+            next: (dict) => (this.translationDict = dict),
+          });
       },
-      error: (error) => {
-        console.error('Error loading translations for language:', this.selectedLanguage, error);
-      }
+      error: (err) => {
+        const msg =
+          err?.error?.message || err?.message || 'Failed to save translations';
+        this.snackBar.open(msg, 'Close', { duration: 3000 });
+      },
     });
   }
 
-  getTranslation(key: string): string {
-    const value = this.translations[key];
-    console.log(`Getting translation for key '${key}':`, value || `(empty)`);
-    return value || '';
-  }
-
-  markAsModified(element: Translation): void {
-    element.isModified = true;
-    console.log(`Marked row with key '${element.translationKey}' as modified`);
-  }
-
-  getModifiedTranslations(): any[] {
-    const modified = this.dataSource.data
+  // Builds the payload for upsertTranslations. Throws if any modified item is missing a keyId.
+  private buildSavePayload(): any[] {
+    return this.dataSource.data
       .filter((item) => item.isModified && item.translation?.trim())
       .map((item) => {
-        console.log('Full item object:', item);
-        console.log('item.id:', item.id);
-        console.log('item.translationKey:', item.translationKey);
-
-        // Ensure keyId is properly extracted from the item
         const keyId = item.id ? Number(item.id) : null;
-
         if (!keyId) {
-          console.error('ERROR: keyId is null for item:', item);
-          throw new Error(`Cannot save translation: keyId is missing for key '${item.translationKey}'`);
+          throw new Error(
+            `Cannot save: keyId missing for key '${item.translationKey}'`
+          );
         }
-
-        const request = {
-          keyId: keyId,
+        return {
+          keyId,
           value: item.translation,
           languageCode: this.selectedLanguage.toUpperCase(),
         };
-        console.log('Final request:', request);
-        return request;
       });
-
-    console.log('Modified translations to send:', modified);
-    return modified;
-    }
-      getStats() {
-    const totalKeys = this.dataSource.data.filter(
-      (t) => t.translationKey?.trim()
-    ).length;
-
-    const translated = this.dataSource.data.filter((t) => {
-      const value = this.translations[t.translationKey];
-      return value && value.trim() !== '';
-    }).length;
-
-    const completion =
-      totalKeys > 0 ? Math.round((translated / totalKeys) * 100) : 0;
-
-    return { totalKeys, translated, completion };
-  }
-
-  saveTranslations(): void {
-    this.executeTableSave();
-  }
-  executeTableSave(): void {
-    console.log('Current table data:', this.dataSource.data);
-    console.log('Selected language:', this.selectedLanguage);
-
-    try {
-      const modifiedTranslations = this.getModifiedTranslations();
-
-      if (modifiedTranslations.length === 0) {
-        this.snackBar.open('No changes to save', 'Close', { duration: 3000 });
-        return;
-      }
-
-      console.log('Saving modified translations:', modifiedTranslations);
-
-      this.translationService.upsertTranslations(modifiedTranslations).subscribe({
-        next: (response) => {
-          console.log('Translations saved successfully:', response);
-
-          // Reset isModified flag
-          this.dataSource.data.forEach((item) => {
-            if (item.isModified) {
-              item.isModified = false;
-            }
-          });
-          this.snackBar.open('Translations saved successfully!', 'Close', {
-  duration: 3000,
-});
-this.translationService.notifySaveCompleted();
-
-          // Reload translations for current language
-          this.loadTranslationsForLanguage(this.selectedLanguage);
-
-          this.snackBar.open('Translations saved successfully!', 'Close', {
-            duration: 3000,
-          });
-        },
-        error: (error) => {
-          console.error('Error saving translations:', error);
-          const message = error?.error?.message || error?.message || 'Failed to save translations';
-          this.snackBar.open(message, 'Close', { duration: 3000 });
-          this.translationService.notifySaveCompleted();
-        },
-      });
-    } catch (error: any) {
-      console.error('Error preparing translations:', error);
-      this.snackBar.open(error?.message || 'Failed to prepare translations for save', 'Close', { duration: 3000 });
-    }
   }
 }

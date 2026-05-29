@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff version="1.2">
+  <file source-language="en-US" target-language="FR">
+    <body>
+      <trans-unit id="OPEN">
+        <source>OPEN</source>
+        <target>ouvrir</target>
+      </trans-unit>
+      <trans-unit id="OFFICE">
+        <source>OFFICE</source>
+        <target>welcome</target>
+      </trans-unit>
+      <trans-unit id="MOUSE">
+        <source>MOUSE</source>
+        <target>keyboard in french</target>
+      </trans-unit>
+      <trans-unit id="KEYPAD">
+        <source>KEYPAD</source>
+        <target>keyboard in french</target>
+      </trans-unit>
+      <trans-unit id="HELLO">
+        <source>HELLO</source>
+        <target>fgh</target>
+      </trans-unit>
+      <trans-unit id="HI">
+        <source>HI</source>
+        <target>french hell</target>
+      </trans-unit>
+      <trans-unit id="NANDISH">
+        <source>NANDISH</source>
+        <target>nandish in french</target>
+      </trans-unit>
+      <trans-unit id="BOX">
+        <source>BOX</source>
+        <target>french lunchbox</target>
+      </trans-unit>
+      <trans-unit id="PODS">
+        <source>PODS</source>
+        <target>french earpods</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>
