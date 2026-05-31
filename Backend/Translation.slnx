@@ -5,4 +5,5 @@
   <Project Path="Translation.Data/Translation.DAO.csproj" Id="b761303c-5cf1-4c18-84dd-07e9193ce06c" />
   <Project Path="Translation.Models/Translation.Models.csproj" Id="8c922c8a-dc08-47a8-928b-caec307dc691" />
   <Project Path="Translation.Service/Translation.Service.csproj" Id="5d2da7c5-6506-4394-b12b-695bf34c6bf2" />
+  <Project Path="Translation.Tests/Translation.Tests.csproj" Id="70785d1d-845a-48be-a125-4bc70ba57004" />
 </Solution>
