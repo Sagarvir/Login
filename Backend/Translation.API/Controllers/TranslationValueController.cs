@@ -137,6 +137,23 @@ namespace Translation.API.Controllers
             return Ok(result);
         }
 
+        [HttpPost("publish/{languageCode}")]
+        [Authorize(Roles = "Admin,Creator")]
+        public async Task<IActionResult> PublishLanguage( string languageCode)
+        {
+            var result =
+                await _translationService
+                    .PublishLanguageAsync(
+                        languageCode);
+
+            if (!result.Success)
+            {
+                return BadRequest(result);
+            }
+
+            return Ok(result);
+        }
+
     }
 }
 

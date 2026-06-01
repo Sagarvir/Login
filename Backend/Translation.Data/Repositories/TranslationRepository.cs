@@ -248,6 +248,21 @@ namespace Translation.DAO.Repositories
                 .Include(tv => tv.TranslationKey)
                 .ToListAsync();
         }
+        public async Task<List<TranslationValue>>GetTranslationsByLanguageAsync(string languageCode)
+        {
+            return await _context.TranslationValues
+
+                .Include(x => x.TranslationKey)
+
+                .Include(x => x.Language)
+
+                .Where(x =>
+                    x.LanguageCode.ToUpper()
+                    ==
+                    languageCode.ToUpper())
+
+                .ToListAsync();
+        }
 
         // Save a translation publish record to the database, adding it to the TranslationPublishes DbSet and saving the changes.
         public async Task SavePublishRecordAsync(TranslationPublish publishRecord)

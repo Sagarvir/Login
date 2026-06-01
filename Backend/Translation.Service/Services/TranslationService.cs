@@ -1,7 +1,9 @@
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using System.Text.Json;
 using System.Xml.Linq;
-using Microsoft.AspNetCore.Hosting;
 using Translation.Contracts.DTO.Translation;
+using Translation.DAO.Data;
 using Translation.DAO.Repositories.Interfaces;
 using Translation.Models.Entities;
 using Translation.Service.Interfaces;
@@ -14,12 +16,18 @@ namespace Translation.Service.Services
     {
         private readonly ITranslationRepository _repo;
         private readonly IWebHostEnvironment _env;
+        private readonly AppDbContext _context;
+
 
         // Constructor injects dependencies for translation data access and environment info.
-        public TranslationService(ITranslationRepository repo, IWebHostEnvironment env)
+        
+
+        public TranslationService(ITranslationRepository repo, IWebHostEnvironment env, AppDbContext context)
+
         {
             _repo = repo;
             _env = env;
+            _context = context;
         }
 
         // Creates a new translation key after validating input and checking for duplicates.
@@ -459,7 +467,123 @@ namespace Translation.Service.Services
                 Success = true,
                 Version = version,
                 FileCount = fileCount,
-                Message = "Translations published successfully"
+                Message = publishFolder
+            };
+        }
+        public async Task<PublishTranslationResponse>PublishLanguageAsync(string languageCode)
+        {
+            var translations =
+                await _repo
+                    .GetTranslationsByLanguageAsync(
+                        languageCode);
+
+            if (!translations.Any())
+            {
+                return new PublishTranslationResponse
+                {
+                    Success = false,
+                    Message =
+                        $"No translations found for {languageCode}"
+                };
+            }
+
+            var version =
+                $"v{DateTime.UtcNow:yyyyMMddHHmmss}";
+
+            var publishFolder =
+                Path.Combine(
+                    _env.ContentRootPath,
+                    "PublishedTranslations",
+                    languageCode,
+                    version
+                );
+            Console.WriteLine($"Publish Folder: {publishFolder}");
+
+            Directory.CreateDirectory(
+                publishFolder);
+
+            var jsonDictionary =
+                translations.ToDictionary(
+                    t => t.TranslationKey!.KeyName,
+                    t => t.Value
+                );
+
+            var json =
+                JsonSerializer.Serialize(
+                    jsonDictionary,
+                    new JsonSerializerOptions
+                    {
+                        WriteIndented = true
+                    });
+
+            var jsonPath =
+                Path.Combine(
+                    publishFolder,
+                    $"{languageCode}.json");
+
+            await File.WriteAllTextAsync(
+                jsonPath,
+                json);
+
+            var xlf =
+                new XDocument(
+                    new XElement(
+                        "xliff",
+                        new XAttribute(
+                            "version",
+                            "1.2"),
+
+                        new XElement(
+                            "file",
+
+                            new XAttribute(
+                                "source-language",
+                                "en"),
+
+                            new XAttribute(
+                                "target-language",
+                                languageCode),
+
+                            new XElement(
+                                "body",
+
+                                translations.Select(t =>
+
+                                    new XElement(
+                                        "trans-unit",
+
+                                        new XAttribute(
+                                            "id",
+                                            t.TranslationKey!.Id),
+
+                                        new XElement(
+                                            "source",
+                                            t.TranslationKey
+                                             .OriginalText),
+
+                                        new XElement(
+                                            "target",
+                                            t.Value)
+                                    )
+                                )
+                            )
+                        )
+                    )
+                );
+
+            var xlfPath =
+                Path.Combine(
+                    publishFolder,
+                    $"{languageCode}.xlf");
+
+            xlf.Save(xlfPath);
+
+            return new PublishTranslationResponse
+            {
+                Success = true,
+                Version = version,
+                FileCount = 2,
+                Message = publishFolder
             };
         }
 

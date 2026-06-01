@@ -1,4 +1,5 @@
 using Translation.Contracts.DTO.Translation;
+using Translation.Models.Entities;
 
 namespace Translation.Service.Interfaces
 {
@@ -20,5 +21,6 @@ namespace Translation.Service.Interfaces
 
         Task<string> UpsertTranslationsV2Async(BulkTranslationRequestV2 request, string empId);
         Task<PublishTranslationResponse> PublishTranslationsAsync();
+        Task<PublishTranslationResponse> PublishLanguageAsync(string languageCode);
     }
 }
