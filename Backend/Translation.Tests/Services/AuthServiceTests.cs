@@ -42,7 +42,7 @@ namespace Translation.Tests.Services
                     ["Jwt:Issuer"] = "TestIssuer",
                     ["Jwt:Audience"] = "TestAudience",
                     ["Jwt:ExpiryMinutes"] = "60",
-                    ["Jwt:RefreshExpiryDays"] = "7"
+                    ["Jwt:RefreshTokenExpiryDays"] = "7"
                 })
                 .Build();
 
