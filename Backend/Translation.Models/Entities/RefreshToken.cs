@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Translation.Models.Entities
 {
+    // Refresh token record tied to a user session.
     public class RefreshToken
     {
         [Key]

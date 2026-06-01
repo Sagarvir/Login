@@ -2,6 +2,7 @@ using Translation.Models.Entities;
 
 namespace Translation.DAO.Repositories.Interfaces
 {
+    // Repository contract for user and role persistence.
     public interface IUserRepository
     {
         Task<bool> UserExists(string employeeId);

@@ -2,6 +2,7 @@ using Translation.Models.Entities;
 
 namespace Translation.DAO.Repositories.Interfaces
 {
+    // Repository contract for language persistence.
     public interface ILanguageRepository
     {
         Task<List<Language>> GetLanguagesAsync();

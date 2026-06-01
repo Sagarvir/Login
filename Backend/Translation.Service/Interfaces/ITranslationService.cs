@@ -2,6 +2,7 @@ using Translation.Contracts.DTO.Translation;
 
 namespace Translation.Service.Interfaces
 {
+    // Service contract for translation workflows.
     public interface ITranslationService
     {
         Task<object> CreateKey(CreateKeyRequest request, string empId);

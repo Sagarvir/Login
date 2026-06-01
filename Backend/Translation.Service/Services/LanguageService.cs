@@ -6,20 +6,24 @@ using Translation.Contracts.DTO.Languages;
 
 namespace Translation.Service.Services
 {
+    // Implements language management workflows.
     public class LanguageService : ILanguageService
     {
         private readonly ILanguageRepository _repo;
 
+        // Constructor injects the language repository for data access.
         public LanguageService(ILanguageRepository repo)
         {
             _repo = repo;
         }
 
+        // Retrieves all languages from the repository.
         public async Task<List<Language>> GetLanguagesAsync()
         {
             return await _repo.GetLanguagesAsync();
         }
 
+        // Adds a new language after validating the input.
         public async Task<Language> AddLanguageAsync(AddLanguage language)
 
         {
@@ -42,6 +46,7 @@ namespace Translation.Service.Services
             return lang;
         }
 
+        // Deletes a language by ID after checking if it exists.
         public async Task DeleteLanguageAsync(int id)
         {
             var lang = await _repo.GetLanguageByIdAsync(id);

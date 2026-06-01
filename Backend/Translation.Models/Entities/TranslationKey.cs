@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 namespace Translation.Models.Entities
 {
+    // Canonical translation key stored per project.
     public class TranslationKey
     {
         [Key]

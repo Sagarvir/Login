@@ -4,8 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Translation.Models.Entities
 {
-  
-
+    // User account stored in the translation system.
     public class User
     {
         [Key]

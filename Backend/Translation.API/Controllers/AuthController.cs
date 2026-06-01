@@ -10,11 +10,13 @@ namespace Translation.API.Controllers
     {
         private readonly IAuthService _service;
 
+        // Constructor injects the authentication service for handling auth workflows.
         public AuthController(IAuthService service)
         {
             _service = service;
         }
 
+        // Register a new user and persist credentials.
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterRequest request)
         {
@@ -30,6 +32,7 @@ namespace Translation.API.Controllers
             }
         }
 
+        // Authenticate a user and issue access/refresh tokens.
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginRequest request)
         {
@@ -43,6 +46,7 @@ namespace Translation.API.Controllers
             }
         }
 
+        // Assign a role to an existing user (Admin only).
         [Authorize(Roles = "Admin")]
         [HttpPut("assign-role")]
         public async Task<IActionResult> AssignRole(AssignRoleRequest request)
@@ -57,6 +61,7 @@ namespace Translation.API.Controllers
             }
         }
 
+        // Exchange a refresh token for a new access token.
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh(RefreshRequest request)
         {
@@ -71,6 +76,7 @@ namespace Translation.API.Controllers
             }
         }
 
+        // Revoke a refresh token to end the session.
         [HttpPost("revoke")]
         public async Task<IActionResult> Revoke(RefreshRequest request)
         {

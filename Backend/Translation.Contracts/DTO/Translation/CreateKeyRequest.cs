@@ -1,5 +1,6 @@
 ﻿namespace Translation.Contracts.DTO.Translation
 {
+    // Request payload for creating a single translation key.
     public class CreateKeyRequest
     {
         public string KeyName { get; set; }

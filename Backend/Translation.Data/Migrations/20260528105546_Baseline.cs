@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Translation.DAO.Migrations
 {
+    // Initial schema creation for the translation database.
     /// <inheritdoc />
     public partial class Baseline : Migration
     {

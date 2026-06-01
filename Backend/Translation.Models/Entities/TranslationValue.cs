@@ -5,6 +5,7 @@ using System.Text.Json.Serialization;
 
 namespace Translation.Models.Entities
 {
+    // Translation value for a key and language.
     public class TranslationValue
     {
         [Key]

@@ -5,6 +5,7 @@ using Translation.Models.Entities;
 
 namespace Translation.DAO.Data
 {
+    // EF Core DbContext for the translation data store.
     public class AppDbContext : DbContext
     {
         public AppDbContext(DbContextOptions<AppDbContext> options)

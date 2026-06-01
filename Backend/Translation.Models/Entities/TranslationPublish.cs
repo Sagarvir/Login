@@ -4,6 +4,7 @@ using System.Text;
 
 namespace Translation.Models.Entities
 {
+    // Record of a translation publish event.
     public class TranslationPublish
     {
         public int Id { get; set; }

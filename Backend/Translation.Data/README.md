@@ -3,6 +3,8 @@
 ## Overview
 Data access layer for the translation system. It contains EF Core DbContext configuration, entity mappings, and repository implementations for persistence.
 
+<!-- Notes: Keep this file updated when repository interfaces or migrations change. -->
+
 ## Responsibilities
 - Define `AppDbContext` and entity relationships.
 - Provide repository interfaces and implementations.

@@ -4,8 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace Translation.Models.Entities
 {
-   
-
+    // Join entity between translation keys and projects.
     public class KeyProject
     {
         [Key]

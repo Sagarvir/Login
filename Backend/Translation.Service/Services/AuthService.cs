@@ -7,17 +7,20 @@ using BCrypt.Net;
 
 namespace Translation.Service.Services
 {
+    // Implements authentication flows backed by repositories and JWTs.
     public class AuthService : IAuthService
     {
         private readonly IUserRepository _repo;
         private readonly JwtService _jwtService;
 
+        // Constructor injects dependencies for user data access and JWT handling.
         public AuthService(IUserRepository repo, JwtService jwtService)
         {
             _repo = repo;
             _jwtService = jwtService;
         }
 
+        // Registers a new user after validating input and ensuring uniqueness.
         public async Task<string> Register(RegisterRequest request)
         {
             var emp = request.EmployeeId?.Trim().ToLower();
@@ -54,6 +57,7 @@ namespace Translation.Service.Services
             return "User registered successfully";
         }
 
+        // Authenticates a user and issues JWT tokens if credentials are valid.
         public async Task<AuthResponse> Login(LoginRequest request)
         {
             if (string.IsNullOrWhiteSpace(request.EmployeeId))
@@ -92,6 +96,7 @@ namespace Translation.Service.Services
             };
         }
 
+        // Assigns a role to a user based on employee ID and role name.
         public async Task<object> AssignRole(AssignRoleRequest request)
         {
             var user = await _repo.GetUserByEmployeeId(request.EmployeeId);
@@ -114,6 +119,7 @@ namespace Translation.Service.Services
             };
         }
 
+        // Refreshes JWT tokens by validating the provided refresh token and issuing new tokens.
         public async Task<AuthResponse> Refresh(RefreshRequest request, string ip)
         {
             var hash = _jwtService.HashToken(request.RefreshToken);
@@ -149,6 +155,7 @@ namespace Translation.Service.Services
             };
         }
 
+        // Revokes a refresh token, preventing its future use for obtaining new access tokens.
         public async Task<string> Revoke(RefreshRequest request)
         {
             var hash = _jwtService.HashToken(request.RefreshToken);

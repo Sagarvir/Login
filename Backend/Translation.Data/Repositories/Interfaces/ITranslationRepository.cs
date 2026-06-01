@@ -3,6 +3,7 @@ using Translation.Models.Entities;
 
 namespace Translation.DAO.Repositories.Interfaces
 {
+    // Repository contract for translation keys and values.
     public interface ITranslationRepository
     {
         Task<bool> KeyExists(string keyName, int projectId);

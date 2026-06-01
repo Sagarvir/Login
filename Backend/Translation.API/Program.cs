@@ -18,6 +18,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddSingleton<JwtService>();
 
+// Application services and repositories.
 builder.Services.AddScoped<IAuthService, Translation.Service.Services.AuthService>();
 builder.Services.AddScoped<IUserRepository, Translation.DAO.Repositories.UserRepository>();
 builder.Services.AddScoped<ITranslationService, Translation.Service.Services.TranslationService>();
@@ -27,6 +28,7 @@ builder.Services.AddScoped<ILanguageRepository, Translation.DAO.Repositories.Lan
 var jwtKey = builder.Configuration["Jwt:Key"]
     ?? throw new InvalidOperationException("Jwt:Key is missing in configuration.");
 
+// Configure JWT authentication.
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -61,10 +63,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         options.SaveToken = false;
     });
 
+// Configure database context.
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")
     ));
+// Register controllers and JSON settings.
 builder.Services.AddAuthorization();
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -76,6 +80,7 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
+    // Add JWT bearer auth to Swagger UI.
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -101,6 +106,7 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 });
+// Allow cross-origin requests for all origins/headers/methods.
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll",
@@ -118,10 +124,13 @@ if (app.Environment.IsDevelopment())
 }
 
 
+// Redirect HTTP to HTTPS when configured.
 app.UseHttpsRedirection();
 
+// Apply CORS policy.
 app.UseCors("AllowAll");
 
+// Enable authentication and authorization.
 app.UseAuthentication();
 
 app.UseAuthorization();

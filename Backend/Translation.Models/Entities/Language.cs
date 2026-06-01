@@ -1,5 +1,6 @@
 namespace Translation.Models.Entities
 {
+    // Language reference data used by translations.
     public class Language
     {
         public int Id { get; set; }

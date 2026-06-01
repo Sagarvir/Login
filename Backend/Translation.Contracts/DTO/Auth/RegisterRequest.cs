@@ -1,5 +1,6 @@
 namespace Translation.Contracts.DTO.Auth
 {
+    // Request payload for registering a new user.
     public class RegisterRequest
     {
         public string? EmployeeId { get; set; }

@@ -1,5 +1,6 @@
 namespace Translation.Contracts.DTO.Translation
 {
+    // Response payload for a translation lookup.
     public class TranslationResponse
     {
         public string KeyName { get; set; } = string.Empty;

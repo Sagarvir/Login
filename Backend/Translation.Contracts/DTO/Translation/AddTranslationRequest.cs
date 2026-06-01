@@ -1,5 +1,6 @@
 namespace Translation.Contracts.DTO.Translation
 {
+    // Request payload for adding a single translation value.
     public class AddTranslationRequest
     {
         public int KeyId { get; set; }

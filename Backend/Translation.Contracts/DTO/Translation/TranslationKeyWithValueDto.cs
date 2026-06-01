@@ -1,5 +1,6 @@
 namespace Translation.Contracts.DTO.Translation
 {
+    // DTO representing a key with its translated value.
     public class TranslationKeyWithValueDto
     {
         public int KeyId { get; set; }

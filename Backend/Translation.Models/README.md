@@ -13,3 +13,5 @@ Domain entities and model classes shared across the solution. This project conta
 
 ## File Structure
 - Entities/
+
+<!-- Notes: Keep entity descriptions aligned with the domain model. -->

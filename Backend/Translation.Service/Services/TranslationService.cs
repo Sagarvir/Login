@@ -9,17 +9,20 @@ using Translation.Service.Interfaces;
 
 namespace Translation.Service.Services
 {
+    // Implements translation workflows and publishing logic.
     public class TranslationService : ITranslationService
     {
         private readonly ITranslationRepository _repo;
         private readonly IWebHostEnvironment _env;
 
+        // Constructor injects dependencies for translation data access and environment info.
         public TranslationService(ITranslationRepository repo, IWebHostEnvironment env)
         {
             _repo = repo;
             _env = env;
         }
 
+        // Creates a new translation key after validating input and checking for duplicates.
         public async Task<object> CreateKey(CreateKeyRequest request, string empId)
         {
 
@@ -55,6 +58,7 @@ namespace Translation.Service.Services
             };
         }
 
+        // Creates multiple translation keys in bulk, with validation and duplicate checking.
         public async Task<object> CreateKeys(CreateKeysRequest request, string empId)
         {
 
@@ -112,6 +116,8 @@ namespace Translation.Service.Services
                 keyIds = keys.Select(k => k.Id)
             };
         }
+
+        // Inserts or updates multiple translations in bulk, with validation and reporting of invalid keys.
         public async Task<string> InsertTranslationsAsync(BulkTranslationRequest request, string empId)
         {
             if (request.Translations == null || request.Translations.Count == 0)
@@ -160,6 +166,7 @@ namespace Translation.Service.Services
             return "Translations saved successfully.";
         }
 
+        // Inserts a single translation after validating input and checking for existing translation.
         public async Task<string> InsertTranslationAsync(AddTranslationRequest request, string empId)
         {
             if (request.KeyId <= 0)
@@ -201,6 +208,7 @@ namespace Translation.Service.Services
             return "Translation saved successfully.";
         }
 
+        // Retrieves a specific translation for a given key and language, returning an empty value if not found.
         public async Task<object> GetTranslationAsync(int keyId, string languageCode)
         {
             if (keyId <= 0)
@@ -226,6 +234,7 @@ namespace Translation.Service.Services
             };
         }
 
+        // Retrieves all translations for a given key, returning an empty list if none are found.
         public async Task<object> GetAllTranslationsAsync(int keyId)
         {
             if (keyId <= 0)
@@ -240,6 +249,7 @@ namespace Translation.Service.Services
             });
         }
 
+        // Retrieves all translation keys along with their translations for a specific language.
         public async Task<List<TranslationKeyWithValueDto>> GetKeysWithTranslationsAsync(string languageCode)
         {
             if (string.IsNullOrWhiteSpace(languageCode))
@@ -250,6 +260,7 @@ namespace Translation.Service.Services
             return await _repo.GetKeysWithTranslationsAsync(language);
         }
 
+        // Inserts or updates multiple translations in bulk, with validation and reporting of invalid keys (version 2).
         public async Task<string> UpsertTranslationsV2Async(BulkTranslationRequestV2 request, string empId)
         {
             if (request.Translations == null || request.Translations.Count == 0)
@@ -286,6 +297,7 @@ namespace Translation.Service.Services
             return "Translations saved successfully.";
         }
 
+        // Retrieves all translation keys along with their original text and project ID.
         public async Task<object> GetAllKeys()
         {
             var keys = await _repo.GetAllKeys();
@@ -298,6 +310,7 @@ namespace Translation.Service.Services
             });
         }
 
+        // Deletes a translation key and its associated translations after validating the key ID and checking for existence.
         public async Task DeleteKey(int id)
         {
             if (id <= 0)
@@ -320,6 +333,7 @@ namespace Translation.Service.Services
             await _repo.DeleteKeyAsync(key);
         }
 
+        // Publishes all translations by generating JSON and XLF files for each language, saving them to a versioned folder, and recording the publish event in the database.
         public async Task<PublishTranslationResponse> PublishTranslationsAsync()
         {
             var translations =

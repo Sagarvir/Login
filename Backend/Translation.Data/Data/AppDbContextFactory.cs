@@ -5,6 +5,7 @@ using Translation.DAO.Data;
 
 namespace Translation.DAO.Data
 {
+    // Design-time factory for creating AppDbContext instances for migrations.
     public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
     {
         public AppDbContext CreateDbContext(string[] args)

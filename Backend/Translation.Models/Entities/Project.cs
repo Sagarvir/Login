@@ -1,8 +1,7 @@
 using System.Text.Json.Serialization;
 namespace Translation.Models.Entities
 {
-    
-
+    // Project entity grouping translation keys.
     public class Project
     {
         public int Id { get; set; }

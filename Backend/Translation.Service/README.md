@@ -21,3 +21,5 @@ Business logic layer for translation features. It implements application service
 - Helpers/
 - Interfaces/
 - Services/
+
+<!-- Notes: Keep service documentation aligned with business rules. -->

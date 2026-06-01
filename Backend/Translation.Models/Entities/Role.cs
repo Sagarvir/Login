@@ -1,6 +1,6 @@
 namespace Translation.Models.Entities
 {
-
+    // Role assigned to users for authorization.
     public class Role
     {
         public int Id { get; set; }

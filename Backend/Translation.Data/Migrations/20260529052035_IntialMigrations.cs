@@ -1,9 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace Translation.DAO.Migrations
 {
+    // Placeholder migration created after baseline.
     /// <inheritdoc />
     public partial class IntialMigrations : Migration
     {

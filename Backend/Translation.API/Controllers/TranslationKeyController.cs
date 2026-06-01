@@ -18,6 +18,7 @@ namespace Translation.API.Controllers
             _service = service;
         }
 
+        // Create a new translation key
         [HttpPost]
         [Authorize(Roles = "Creator,Admin")]
         public async Task<IActionResult> CreateKey(CreateKeyRequest request)
@@ -34,6 +35,7 @@ namespace Translation.API.Controllers
             }
         }
 
+        // Create multiple translation keys in bulk 
         [HttpPost("bulk")]
         [Authorize(Roles = "Creator,Admin")]
         public async Task<IActionResult> CreateKeys(CreateKeysRequest request)
@@ -50,6 +52,7 @@ namespace Translation.API.Controllers
             }
         }
 
+        // Get all translation keys
         [HttpGet]
         [Authorize]
         public async Task<IActionResult> GetAllKeys()
@@ -57,6 +60,8 @@ namespace Translation.API.Controllers
             var result = await _service.GetAllKeys();
             return Ok(result);
         }
+
+        // Delete a translation key by ID
         [HttpDelete("{id}")]
         [Authorize(Roles = "Creator,Admin")]
         public async Task<IActionResult> DeleteKey(int id)

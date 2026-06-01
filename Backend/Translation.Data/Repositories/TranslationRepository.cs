@@ -1,12 +1,13 @@
 
-using Translation.DAO.Data;
-using Translation.Models.Entities;
-using Translation.DAO.Repositories.Interfaces;
-using Translation.Contracts.DTO.Translation;
 using Microsoft.EntityFrameworkCore;
+using Translation.Contracts.DTO.Translation;
+using Translation.DAO.Data;
+using Translation.DAO.Repositories.Interfaces;
+using Translation.Models.Entities;
 
 namespace Translation.DAO.Repositories
 {
+    // Data access implementation for translation keys and values.
     public class TranslationRepository : ITranslationRepository
     {
         private readonly AppDbContext _context;
@@ -16,6 +17,7 @@ namespace Translation.DAO.Repositories
             _context = context;
         }
 
+        // Check if a translation key already exists for a given project.
         public async Task<bool> KeyExists(string keyName, int projectId)
         {
             return await _context.TranslationKeys
@@ -24,18 +26,21 @@ namespace Translation.DAO.Repositories
                             && k.IsActive);
         }
 
+        // Add a new translation key to the database.
         public async Task AddKey(TranslationKey key)
         {
             _context.TranslationKeys.Add(key);
             await _context.SaveChangesAsync();
         }
 
+        // Add multiple translation keys to the database in a single operation.
         public async Task AddKeys(List<TranslationKey> keys)
         {
             _context.TranslationKeys.AddRange(keys);
             await _context.SaveChangesAsync();
         }
 
+        // Retrieve all active translation keys from the database, ordered by creation date.
         public async Task<List<TranslationKey>> GetAllKeys()
         {
             return await _context.TranslationKeys
@@ -44,6 +49,7 @@ namespace Translation.DAO.Repositories
                 .ToListAsync();
         }
 
+        // Retrieve existing translation keys based on a list of dynamic objects containing key names and project IDs.
         public async Task<List<(string KeyName, int ProjectId)>> GetExistingKeys(List<dynamic> keys)
         {
             var projectIds = keys.Select(k => (int)k.ProjectId).Distinct().ToList();
@@ -59,6 +65,7 @@ namespace Translation.DAO.Repositories
             return existing.Select(e => (e.KeyName, e.ProjectId)).ToList();
         }
 
+        // Overload of GetExistingKeys that accepts a list of strongly-typed CreateKeyItem objects instead of dynamic objects.
         public async Task<List<(string KeyName, int ProjectId)>> GetExistingKeys(List<CreateKeyItem> keys)
         {
             var projectIds = keys.Select(k => k.ProjectId).Distinct().ToList();
@@ -73,6 +80,8 @@ namespace Translation.DAO.Repositories
 
             return existing.Select(e => (e.KeyName, e.ProjectId)).ToList();
         }
+
+        // Retrieve a list of valid translation key IDs based on a provided list of key IDs, ensuring that only active keys are returned.
         public async Task<List<int>> GetValidKeyIdsAsync(List<int> keyIds)
         {
             return await _context.TranslationKeys
@@ -81,6 +90,7 @@ namespace Translation.DAO.Repositories
                 .ToListAsync();
         }
 
+        // Retrieve existing translation values based on a list of translation key IDs, ensuring that only values associated with active keys are returned.
         public async Task<List<TranslationValue>> GetExistingTranslationsAsync(List<int> keyIds)
         {
             return await _context.TranslationValues
@@ -88,35 +98,41 @@ namespace Translation.DAO.Repositories
                 .ToListAsync();
         }
 
+        // Check if a translation key exists and is active based on its ID.
         public async Task<bool> TranslationKeyExistsAsync(int keyId)
         {
             return await _context.TranslationKeys
                 .AnyAsync(k => k.Id == keyId && k.IsActive);
         }
 
+        // Check if a language exists in the database based on its code.
         public async Task<bool> LanguageExistsAsync(string languageCode)
         {
             return await _context.Languages
                 .AnyAsync(l => l.Code == languageCode);
         }
 
+        // Retrieve a specific translation value based on the translation key ID and language code.
         public async Task<TranslationValue?> GetTranslationValueAsync(int keyId, string languageCode)
         {
             return await _context.TranslationValues
                 .FirstOrDefaultAsync(t => t.TranslationKeyId == keyId && t.LanguageCode == languageCode);
         }
 
+        // Save a translation value to the database, adding it if it doesn't exist or updating it if it does.
         public async Task SaveTranslationAsync(TranslationValue translation)
         {
             _context.TranslationValues.Add(translation);
             await _context.SaveChangesAsync();
         }
 
+        // Save all pending changes to the database.
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();
         }
 
+        // Retrieve a translation value for UI display based on the translation key ID and language code, returning null if no matching translation is found.
         public async Task<TranslationValue?> GetTranslationForUiAsync(int keyId, string languageCode)
         {
             return await _context.TranslationValues
@@ -130,6 +146,7 @@ namespace Translation.DAO.Repositories
                 .FirstOrDefaultAsync();
         }
 
+        // Retrieve all translation values associated with a specific translation key ID, returning a list of translation values for UI display.
         public async Task<List<TranslationValue>> GetTranslationsByKeyAsync(int keyId)
         {
             return await _context.TranslationValues
@@ -142,6 +159,7 @@ namespace Translation.DAO.Repositories
                 .ToListAsync();
         }
 
+        // Retrieve a list of translation keys along with their corresponding translation values for a specific language code, returning a list of DTOs that include the key information and the translated value.
         public async Task<List<TranslationKeyWithValueDto>> GetKeysWithTranslationsAsync(string languageCode)
         {
             return await _context.TranslationKeys
@@ -160,6 +178,7 @@ namespace Translation.DAO.Repositories
                 .ToListAsync();
         }
 
+        // Insert or update translation values in bulk based on a list of items, checking for existing translations and updating them if found, or adding new translations if not found.
         public async Task InsertBulkAsync(
             List<BulkTranslationItem> items,
             List<TranslationValue> existing,
@@ -194,6 +213,7 @@ namespace Translation.DAO.Repositories
             await _context.SaveChangesAsync();
         }
 
+        // Retrieve a translation key along with its associated translations based on the key ID, returning null if no matching key is found or if the key is not active.
         public async Task<TranslationKey?> GetKeyByIdAsync(int id)
         {
             return await _context.TranslationKeys
@@ -201,6 +221,7 @@ namespace Translation.DAO.Repositories
                 .FirstOrDefaultAsync(k => k.Id == id && k.IsActive);
         }
 
+        // Soft delete a translation key by setting its IsActive property to false and saving the changes to the database.
         public async Task DeleteValuesAsync(List<TranslationValue> values)
         {
             if (values.Count == 0)
@@ -212,11 +233,14 @@ namespace Translation.DAO.Repositories
             await _context.SaveChangesAsync();
         }
 
+        // Soft delete a translation key by setting its IsActive property to false and saving the changes to the database.
         public async Task DeleteKeyAsync(TranslationKey key)
         {
             _context.TranslationKeys.Remove(key);
             await _context.SaveChangesAsync();
         }
+
+        // Retrieve all translation values along with their associated languages and translation keys, returning a list of translation values for publishing purposes.
         public async Task<List<TranslationValue>> GetAllTranslationsForPublishAsync()
         {
             return await _context.TranslationValues
@@ -225,6 +249,7 @@ namespace Translation.DAO.Repositories
                 .ToListAsync();
         }
 
+        // Save a translation publish record to the database, adding it to the TranslationPublishes DbSet and saving the changes.
         public async Task SavePublishRecordAsync(TranslationPublish publishRecord)
         {
             _context.TranslationPublishes.Add(publishRecord);

@@ -4,6 +4,7 @@ using System.Text;
 
 namespace Translation.Contracts.DTO.Translation
 {
+    // Response payload returned after publishing translations.
     public class PublishTranslationResponse
     {
         public bool Success { get; set; }

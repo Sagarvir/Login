@@ -2,6 +2,7 @@ using Translation.Contracts.DTO.Auth;
 
 namespace Translation.Service.Interfaces
 {
+    // Service contract for authentication workflows.
     public interface IAuthService
     {
         Task<string> Register(RegisterRequest request);

@@ -1,4 +1,4 @@
-﻿
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Translation.Contracts.DTO.Translation;
@@ -19,7 +19,7 @@ namespace Translation.API.Controllers
             _translationService = translationService;
         }
 
-        // ✅ Create (Create or Translation)
+        // Create (Create or Translation)
         [HttpPost]
         [Authorize(Roles = "Translator,Admin")]
         public async Task<IActionResult> InsertTranslation(AddTranslationRequest request)
@@ -37,7 +37,7 @@ namespace Translation.API.Controllers
             }
         }
 
-        // ✅ GET Translation by Key + Language (for dropdown UI)
+        //GET Translation by Key + Language (for dropdown UI)
         [HttpGet]
         [Authorize]
         public async Task<IActionResult> GetTranslation(int keyId, string languageCode)
@@ -53,7 +53,7 @@ namespace Translation.API.Controllers
             }
         }
 
-        // ✅ GET All Translations for a Key (optional, useful later)
+        // GET All Translations for a Key (optional, useful later)
         [HttpGet("all/{keyId}")]
         [Authorize]
         public async Task<IActionResult> GetAllTranslations(int keyId)
@@ -68,6 +68,8 @@ namespace Translation.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        // Bulk Insert Translations
         [HttpPost("bulk")]
         [Authorize(Roles = "Translator,Admin")]
         public async Task<IActionResult> InsertTranslations(BulkTranslationRequest request)
@@ -86,6 +88,7 @@ namespace Translation.API.Controllers
             }
         }
 
+        // Bulk Upsert Translations (new endpoint for upsert)
         [HttpPost("bulk-v2")]
         [Authorize(Roles = "Translator,Admin")]
         public async Task<IActionResult> UpsertTranslationsV2(BulkTranslationRequestV2 request)
@@ -102,6 +105,8 @@ namespace Translation.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        // GET Keys with Translations for a Language (for management UI)
         [HttpGet("with-translations")]
         [Authorize(Roles = "Translator,Creator,Admin,Viewer")]
         public async Task<IActionResult> GetKeysWithTranslations(string languageCode)
@@ -116,6 +121,8 @@ namespace Translation.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        // Publish Translations (Admin/Creator only)
         [HttpPost("publish")]
         [Authorize(Roles = "Admin,Creator")]
         public async Task<IActionResult> PublishTranslations()
