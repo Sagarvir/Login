@@ -59,13 +59,13 @@ export class LoginComponent {
           // OPTION 1 (recommended): dashboard first
          const role = this.authService.getUserRole();
 
-if (role?.toLowerCase() === 'admin') {
-  this.router.navigate(['/admin/assign-role']);
-} else {
-  this.router.navigate(['/dashboard']);
-}
+        // if (role?.toLowerCase() === 'admin') {
+        //   this.router.navigate(['/admin/assign-role']);
+        // } else {
+        //   this.router.navigate(['/dashboard']);
+        // }
           // OPTION 2 (if testing admin):
-          // this.router.navigate(['/admin']);
+          this.router.navigate(['/dashboard']);
         },
         error: (err) => {
           console.error('Login failed:', err);

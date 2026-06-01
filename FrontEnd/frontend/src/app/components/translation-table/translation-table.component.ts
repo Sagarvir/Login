@@ -173,7 +173,9 @@ export class TranslationTableComponent implements OnInit, AfterViewInit, OnDestr
   deleteTranslation(index: number): void {
     const dialogRef = this.dialog.open(DeleteConfirmDialogComponent);
     dialogRef.afterClosed().subscribe((confirmed) => {
+      
       if (!confirmed) return;
+      
       this.translationService.deleteTranslation(index).subscribe({
         next: () =>
           this.snackBar.open('Translation deleted', 'Close', { duration: 2000 }),

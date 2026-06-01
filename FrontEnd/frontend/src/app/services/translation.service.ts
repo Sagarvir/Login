@@ -175,25 +175,26 @@ export class TranslationService {
   deleteTranslation(index: number): Observable<void> {
     const translation = this.translations[index];
 
-    if (translation?.id != null) {
-      return this.http
-        .delete<void>(`${this.translationKeyUrl}/${translation.id}`)
-        .pipe(
-          tap(() => {
-            this.translations.splice(index, 1);
-            this.saveCachedTranslations(this.translations);
-            this.translationsSubject.next([...this.translations]);
-          }),
-          catchError((error) => {
-            console.error('Failed to delete translation', error);
-            return throwError(() => error);
-          })
-        );
+      if (!translation?.id) {
+        return throwError(() => new Error('Invalid translation id'));
     }
-
-    this.translations.splice(index, 1);
-    this.translationsSubject.next([...this.translations]);
-    return of(undefined);
+  
+      return this.http
+  .delete(`${this.translationKeyUrl}/${translation.id}`, {
+    responseType: 'text'
+  })
+  .pipe(
+    tap(() => {
+      this.translations.splice(index, 1);
+      this.saveCachedTranslations(this.translations);
+      this.translationsSubject.next([...this.translations]);
+    }),
+    map(() => void 0),
+    catchError((error) => {
+      console.error('Failed to delete translation', error);
+      return throwError(() => error);
+    })
+  );
   }
 
   // --- Bulk save ---

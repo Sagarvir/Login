@@ -34,6 +34,7 @@ export class AddLanguageComponent {
 
     this.http.post('https://localhost:7199/api/Language', {
       id: 0,
+      code: this.languageCode,
       name: this.languageName
     }).subscribe({
       next: (res: any) => {
