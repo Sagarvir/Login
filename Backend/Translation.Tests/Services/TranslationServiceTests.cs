@@ -21,6 +21,7 @@ namespace Translation.Tests.Services
         private const string EmpId = "emp001";
         private const string LangCode = "EN";
         private const int ValidKeyId = 1;
+        private const string ValidKeyName = "WELCOME_MESSAGE";
         private const int ValidProjectId = 10;
 
         [TestInitialize]
@@ -253,12 +254,12 @@ namespace Translation.Tests.Services
         {
             var request = new AddTranslationRequest
             {
-                KeyId = ValidKeyId,
+                KeyName = ValidKeyName,
                 LanguageCode = "en",
                 Value = "Hello"
             };
 
-            _repoMock.Setup(r => r.TranslationKeyExistsAsync(ValidKeyId)).ReturnsAsync(true);
+            _repoMock.Setup(r => r.GetKeyIdByNameAsync(ValidKeyName)).ReturnsAsync(ValidKeyId);
             _repoMock.Setup(r => r.LanguageExistsAsync("EN")).ReturnsAsync(true);
             _repoMock.Setup(r => r.GetTranslationValueAsync(ValidKeyId, "EN")).ReturnsAsync((TranslationValue?)null);
             _repoMock.Setup(r => r.SaveTranslationAsync(It.IsAny<TranslationValue>())).Returns(Task.CompletedTask);
@@ -277,7 +278,7 @@ namespace Translation.Tests.Services
         [TestMethod]
         public async Task InsertTranslation_InvalidKeyId_ThrowsException()
         {
-            var request = new AddTranslationRequest { KeyId = 0, LanguageCode = "EN", Value = "Hello" };
+            var request = new AddTranslationRequest { KeyName = "", LanguageCode = "EN", Value = "Hello" };
 
             await AssertThrowsExceptionAsync(
                 () => _sut.InsertTranslationAsync(request, EmpId));
@@ -286,7 +287,7 @@ namespace Translation.Tests.Services
         [TestMethod]
         public async Task InsertTranslation_MissingLanguageCode_ThrowsException()
         {
-            var request = new AddTranslationRequest { KeyId = ValidKeyId, LanguageCode = "", Value = "Hello" };
+            var request = new AddTranslationRequest { KeyName = ValidKeyName, LanguageCode = "", Value = "Hello" };
 
             await AssertThrowsExceptionAsync(
                 () => _sut.InsertTranslationAsync(request, EmpId));
@@ -295,9 +296,9 @@ namespace Translation.Tests.Services
         [TestMethod]
         public async Task InsertTranslation_KeyNotFound_ThrowsException()
         {
-            var request = new AddTranslationRequest { KeyId = ValidKeyId, LanguageCode = "EN", Value = "Hello" };
+            var request = new AddTranslationRequest { KeyName = ValidKeyName, LanguageCode = "EN", Value = "Hello" };
 
-            _repoMock.Setup(r => r.TranslationKeyExistsAsync(ValidKeyId)).ReturnsAsync(false);
+            _repoMock.Setup(r => r.GetKeyIdByNameAsync(ValidKeyName)).ReturnsAsync((int?)null);
 
             await AssertThrowsExceptionAsync(
                 () => _sut.InsertTranslationAsync(request, EmpId));
@@ -306,9 +307,9 @@ namespace Translation.Tests.Services
         [TestMethod]
         public async Task InsertTranslation_UnsupportedLanguage_ThrowsException()
         {
-            var request = new AddTranslationRequest { KeyId = ValidKeyId, LanguageCode = "XX", Value = "Hello" };
+            var request = new AddTranslationRequest { KeyName = ValidKeyName, LanguageCode = "XX", Value = "Hello" };
 
-            _repoMock.Setup(r => r.TranslationKeyExistsAsync(ValidKeyId)).ReturnsAsync(true);
+            _repoMock.Setup(r => r.GetKeyIdByNameAsync(ValidKeyName)).ReturnsAsync(ValidKeyId);
             _repoMock.Setup(r => r.LanguageExistsAsync("XX")).ReturnsAsync(false);
 
             await AssertThrowsExceptionAsync(
@@ -318,9 +319,9 @@ namespace Translation.Tests.Services
         [TestMethod]
         public async Task InsertTranslation_DuplicateTranslation_ThrowsException()
         {
-            var request = new AddTranslationRequest { KeyId = ValidKeyId, LanguageCode = "EN", Value = "Hello" };
+            var request = new AddTranslationRequest { KeyName = ValidKeyName, LanguageCode = "EN", Value = "Hello" };
 
-            _repoMock.Setup(r => r.TranslationKeyExistsAsync(ValidKeyId)).ReturnsAsync(true);
+            _repoMock.Setup(r => r.GetKeyIdByNameAsync(ValidKeyName)).ReturnsAsync(ValidKeyId);
             _repoMock.Setup(r => r.LanguageExistsAsync("EN")).ReturnsAsync(true);
             _repoMock.Setup(r => r.GetTranslationValueAsync(ValidKeyId, "EN"))
                      .ReturnsAsync(new TranslationValue { TranslationKeyId = ValidKeyId, LanguageCode = "EN" });
@@ -342,8 +343,8 @@ namespace Translation.Tests.Services
             {
                 Translations = new List<AddTranslationRequest>
                 {
-                    new() { KeyId = 1, LanguageCode = "en", Value = "Hello" },
-                    new() { KeyId = 2, LanguageCode = "fr", Value = "Bonjour" }
+                    new() { KeyName = "KEY_ONE", LanguageCode = "en", Value = "Hello" },
+                    new() { KeyName = "KEY_TWO", LanguageCode = "fr", Value = "Bonjour" }
                 }
             };
 
@@ -370,8 +371,8 @@ namespace Translation.Tests.Services
             {
                 Translations = new List<AddTranslationRequest>
                 {
-                    new() { KeyId = 1,   LanguageCode = "en", Value = "Hello" },
-                    new() { KeyId = 999, LanguageCode = "en", Value = "Ghost" }  // invalid
+                    new() { KeyName = "VALID_KEY",   LanguageCode = "en", Value = "Hello" },
+                    new() { KeyName = "MISSING_KEY", LanguageCode = "en", Value = "Ghost" }  // invalid
                 }
             };
 
@@ -388,7 +389,7 @@ namespace Translation.Tests.Services
 
             var result = await _sut.InsertTranslationsAsync(request, EmpId);
 
-            StringAssert.Contains(result, "Invalid KeyIds: 999");
+            StringAssert.Contains(result, "Invalid KeyNames: MISSING_KEY");
         }
 
         [TestMethod]
@@ -398,7 +399,7 @@ namespace Translation.Tests.Services
             {
                 Translations = new List<AddTranslationRequest>
                 {
-                    new() { KeyId = 888, LanguageCode = "en", Value = "Test" }
+                    new() { KeyName = "INVALID_KEY", LanguageCode = "en", Value = "Test" }
                 }
             };
 
@@ -430,7 +431,7 @@ namespace Translation.Tests.Services
             {
                 Translations = new List<AddTranslationRequest>
                 {
-                    new() { KeyId = 0, LanguageCode = "en", Value = "Hello" }
+                    new() { KeyName = "", LanguageCode = "en", Value = "Hello" }
                 }
             };
 
@@ -445,7 +446,7 @@ namespace Translation.Tests.Services
             {
                 Translations = new List<AddTranslationRequest>
                 {
-                    new() { KeyId = 1, LanguageCode = "", Value = "Hello" }
+                    new() { KeyName = "KEY_ONE", LanguageCode = "", Value = "Hello" }
                 }
             };
 
@@ -466,10 +467,11 @@ namespace Translation.Tests.Services
                 Value = "Hello"
             };
 
+            _repoMock.Setup(r => r.GetKeyIdByNameAsync(ValidKeyName)).ReturnsAsync(ValidKeyId);
             _repoMock.Setup(r => r.GetTranslationForUiAsync(ValidKeyId, LangCode))
                      .ReturnsAsync(translation);
 
-            dynamic result = await _sut.GetTranslationAsync(ValidKeyId, "en");
+            dynamic result = await _sut.GetTranslationAsync(ValidKeyName, "en");
 
             Assert.IsNotNull(result);
         }
@@ -477,10 +479,11 @@ namespace Translation.Tests.Services
         [TestMethod]
         public async Task GetTranslation_NotFound_ReturnsEmptyValue()
         {
+            _repoMock.Setup(r => r.GetKeyIdByNameAsync(ValidKeyName)).ReturnsAsync(ValidKeyId);
             _repoMock.Setup(r => r.GetTranslationForUiAsync(ValidKeyId, LangCode))
                      .ReturnsAsync((TranslationValue?)null);
 
-            dynamic result = await _sut.GetTranslationAsync(ValidKeyId, "en");
+            dynamic result = await _sut.GetTranslationAsync(ValidKeyName, "en");
 
             Assert.IsNotNull(result);
         }
@@ -488,13 +491,13 @@ namespace Translation.Tests.Services
         [TestMethod]
         public async Task GetTranslation_InvalidKeyId_ThrowsException()
         {
-            await AssertThrowsExceptionAsync(() => _sut.GetTranslationAsync(0, "EN"));
+            await AssertThrowsExceptionAsync(() => _sut.GetTranslationAsync("", "EN"));
         }
 
         [TestMethod]
         public async Task GetTranslation_MissingLanguageCode_ThrowsException()
         {
-            await AssertThrowsExceptionAsync(() => _sut.GetTranslationAsync(ValidKeyId, ""));
+            await AssertThrowsExceptionAsync(() => _sut.GetTranslationAsync(ValidKeyName, ""));
         }
 
         // ═════════════════════════════════════════════════════════════════════
@@ -510,10 +513,11 @@ namespace Translation.Tests.Services
                 new() { LanguageCode = "FR", Value = "Bonjour" }
             };
 
+            _repoMock.Setup(r => r.GetKeyIdByNameAsync(ValidKeyName)).ReturnsAsync(ValidKeyId);
             _repoMock.Setup(r => r.GetTranslationsByKeyAsync(ValidKeyId))
                      .ReturnsAsync(translations);
 
-            var result = await _sut.GetAllTranslationsAsync(ValidKeyId);
+            var result = await _sut.GetAllTranslationsAsync(ValidKeyName);
 
             Assert.IsNotNull(result);
         }
@@ -521,7 +525,8 @@ namespace Translation.Tests.Services
         [TestMethod]
         public async Task GetAllTranslations_InvalidKeyId_ThrowsException()
         {
-            await AssertThrowsExceptionAsync(() => _sut.GetAllTranslationsAsync(0));
+            _repoMock.Setup(r => r.GetKeyIdByNameAsync("")).ReturnsAsync((int?)null);
+            await AssertThrowsExceptionAsync(() => _sut.GetAllTranslationsAsync(""));
         }
 
         // ═════════════════════════════════════════════════════════════════════

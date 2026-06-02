@@ -98,6 +98,15 @@ namespace Translation.DAO.Repositories
                 .ToListAsync();
         }
 
+        // Resolve a translation key id by key name, returning null when not found or inactive.
+        public async Task<int?> GetKeyIdByNameAsync(string keyName)
+        {
+            return await _context.TranslationKeys
+                .Where(k => k.IsActive && k.KeyName == keyName)
+                .Select(k => (int?)k.Id)
+                .FirstOrDefaultAsync();
+        }
+
         // Check if a translation key exists and is active based on its ID.
         public async Task<bool> TranslationKeyExistsAsync(int keyId)
         {

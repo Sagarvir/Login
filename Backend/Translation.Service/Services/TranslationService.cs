@@ -16,18 +16,16 @@ namespace Translation.Service.Services
     {
         private readonly ITranslationRepository _repo;
         private readonly IWebHostEnvironment _env;
-        private readonly AppDbContext _context;
 
 
         // Constructor injects dependencies for translation data access and environment info.
         
 
-        public TranslationService(ITranslationRepository repo, IWebHostEnvironment env, AppDbContext context)
+        public TranslationService(ITranslationRepository repo, IWebHostEnvironment env)
 
         {
             _repo = repo;
             _env = env;
-            _context = context;
         }
 
         // Creates a new translation key after validating input and checking for duplicates.
@@ -130,45 +128,59 @@ namespace Translation.Service.Services
         {
             if (request.Translations == null || request.Translations.Count == 0)
                 throw new Exception("At least one translation is required.");
-            if (request.Translations.Any(t => t.KeyId <= 0))
-                throw new Exception("Invalid KeyId.");
+            if (request.Translations.Any(t => string.IsNullOrWhiteSpace(t.KeyName)))
+                throw new Exception("KeyName is required.");
             if (request.Translations.Any(t => string.IsNullOrWhiteSpace(t.LanguageCode)))
                 throw new Exception("LanguageCode required.");
+
             var normalizedItems = request.Translations
+                .Select(t => new
+                {
+                    KeyName = t.KeyName.Trim().ToUpperInvariant(),
+                    LanguageCode = t.LanguageCode.Trim().ToUpperInvariant(),
+                    t.Value
+                })
+                .ToList();
+
+            var keyNames = normalizedItems.Select(t => t.KeyName).Distinct().ToList();
+            var keyIdMap = new Dictionary<string, int>();
+
+            foreach (var keyName in keyNames)
+            {
+                var keyId = await _repo.GetKeyIdByNameAsync(keyName);
+                if (keyId.HasValue)
+                {
+                    keyIdMap[keyName] = keyId.Value;
+                }
+            }
+
+            var invalidKeyNames = keyNames.Except(keyIdMap.Keys).ToList();
+            var validItems = normalizedItems
+                .Where(t => keyIdMap.ContainsKey(t.KeyName))
                 .Select(t => new BulkTranslationItem
                 {
-                    KeyId = t.KeyId,
-                    LanguageCode = t.LanguageCode.Trim().ToUpper(),
+                    KeyId = keyIdMap[t.KeyName],
+                    LanguageCode = t.LanguageCode,
                     Value = t.Value
                 })
                 .ToList();
 
-            var keyIds = normalizedItems.Select(t => t.KeyId).Distinct().ToList();
-
-            var validKeys = await _repo.GetValidKeyIdsAsync(keyIds);
-
-            var invalidKeyIds = keyIds.Except(validKeys).ToList();
-            var validKeySet = validKeys.ToHashSet();
-
-            var validItems = normalizedItems
-                .Where(t => validKeySet.Contains(t.KeyId))
-                .ToList();
-
             if (validItems.Count == 0)
             {
-                var invalidMessage = invalidKeyIds.Count > 0
-                    ? $" Invalid KeyIds: {string.Join(", ", invalidKeyIds)}."
+                var invalidMessage = invalidKeyNames.Count > 0
+                    ? $" Invalid KeyNames: {string.Join(", ", invalidKeyNames)}."
                     : string.Empty;
                 return $"No valid translations to save.{invalidMessage}";
             }
 
-            var existing = await _repo.GetExistingTranslationsAsync(validKeys);
+            var validKeyIds = validItems.Select(t => t.KeyId).Distinct().ToList();
+            var existing = await _repo.GetExistingTranslationsAsync(validKeyIds);
 
             await _repo.InsertBulkAsync(validItems, existing, empId);
 
-            if (invalidKeyIds.Count > 0)
+            if (invalidKeyNames.Count > 0)
             {
-                return $"Translations saved successfully for valid keys. Invalid KeyIds: {string.Join(", ", invalidKeyIds)}.";
+                return $"Translations saved successfully for valid keys. Invalid KeyNames: {string.Join(", ", invalidKeyNames)}.";
             }
 
             return "Translations saved successfully.";
@@ -177,33 +189,34 @@ namespace Translation.Service.Services
         // Inserts a single translation after validating input and checking for existing translation.
         public async Task<string> InsertTranslationAsync(AddTranslationRequest request, string empId)
         {
-            if (request.KeyId <= 0)
-                throw new Exception("Valid KeyId is required.");
+            if (string.IsNullOrWhiteSpace(request.KeyName))
+                throw new Exception("KeyName is required.");
 
             if (string.IsNullOrWhiteSpace(request.LanguageCode))
                 throw new Exception("LanguageCode is required.");
 
             var language = request.LanguageCode.Trim().ToUpper();
 
-            var keyExists = await _repo.TranslationKeyExistsAsync(request.KeyId);
-            if (!keyExists)
+            var keyName = request.KeyName.Trim().ToUpperInvariant();
+            var keyId = await _repo.GetKeyIdByNameAsync(keyName);
+            if (keyId == null)
                 throw new Exception("Translation key not found.");
 
             var languageExists = await _repo.LanguageExistsAsync(language);
             if (!languageExists)
                 throw new Exception($"Language '{request.LanguageCode}' is not supported. Supported languages: en, es, fr, de, ja");
 
-            var existing = await _repo.GetTranslationValueAsync(request.KeyId, language);
+            var existing = await _repo.GetTranslationValueAsync(keyId.Value, language);
 
             if (existing != null)
             {
-                throw new Exception($"Translation already exists for KeyId {request.KeyId} and Language '{language}'.");
+                throw new Exception($"Translation already exists for KeyName {keyName} and Language '{language}'.");
             }
             else
             {
                 var translation = new TranslationValue
                 {
-                    TranslationKeyId = request.KeyId,
+                    TranslationKeyId = keyId.Value,
                     LanguageCode = language,
                     Value = request.Value,
                     UpdatedByEmpId = empId,
@@ -217,17 +230,21 @@ namespace Translation.Service.Services
         }
 
         // Retrieves a specific translation for a given key and language, returning an empty value if not found.
-        public async Task<object> GetTranslationAsync(int keyId, string languageCode)
+        public async Task<object> GetTranslationAsync(string key_name, string languageCode)
         {
-            if (keyId <= 0)
-                throw new Exception("Valid KeyId is required.");
+            if (string.IsNullOrWhiteSpace(key_name))
+                throw new Exception("Valid KeyName is required.");
 
             if (string.IsNullOrWhiteSpace(languageCode))
                 throw new Exception("LanguageCode is required.");
 
             var language = languageCode.Trim().ToUpper();
 
-            var translation = await _repo.GetTranslationForUiAsync(keyId, language);
+            var keyId = await _repo.GetKeyIdByNameAsync(key_name);
+            if (keyId == null)
+                throw new Exception("Translation key not found.");
+
+            var translation = await _repo.GetTranslationForUiAsync(keyId.Value, language);
 
             if (translation == null)
             {
@@ -243,12 +260,13 @@ namespace Translation.Service.Services
         }
 
         // Retrieves all translations for a given key, returning an empty list if none are found.
-        public async Task<object> GetAllTranslationsAsync(int keyId)
+        public async Task<object> GetAllTranslationsAsync(string keyName)
         {
-            if (keyId <= 0)
-                throw new Exception("Valid keyId is required.");
+            var keyId = await _repo.GetKeyIdByNameAsync(keyName);
+            if (keyId == null)
+                throw new Exception("Translation key not found.");
 
-            var translations = await _repo.GetTranslationsByKeyAsync(keyId);
+            var translations = await _repo.GetTranslationsByKeyAsync((int)keyId);
 
             return translations.Select(t => new
             {

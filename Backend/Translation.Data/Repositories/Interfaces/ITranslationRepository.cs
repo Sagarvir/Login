@@ -17,6 +17,7 @@ namespace Translation.DAO.Repositories.Interfaces
             List<BulkTranslationItem> items,
             List<TranslationValue> existing,
             string empId);
+        Task<int?> GetKeyIdByNameAsync(string keyName);
         Task<bool> TranslationKeyExistsAsync(int keyId);
         Task<bool> LanguageExistsAsync(string languageCode);
         Task<TranslationValue?> GetTranslationValueAsync(int keyId, string languageCode);
