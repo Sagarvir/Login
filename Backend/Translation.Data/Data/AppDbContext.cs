@@ -46,6 +46,13 @@ namespace Translation.DAO.Data
     new Language { Id = 5, Code = "ja", Name = "Japanese" }
 );
 
+            // Seed Projects (enum-like)
+            modelBuilder.Entity<Project>().HasData(
+                new Project { Id = 1, Name = "OSM" },
+                new Project { Id = 2, Name = "Digital Online" },
+                new Project { Id = 3, Name = "NG" }
+            );
+
             // Configure User -> Language relationship
             modelBuilder.Entity<User>()
                 .HasOne(u => u.PreferredLanguage)
