@@ -4,13 +4,9 @@ import { Router, RouterLink } from '@angular/router';
 import Swal from 'sweetalert2';
 import { AuthService } from '../core/services/auth.service';
 
-interface LoginResponse {
-  accessToken: string;
-  refreshToken: string;
-}
-
 @Component({
   selector: 'app-login',
+  standalone: true, // ✅ important if you're importing in tests
   imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './login.html',
   styleUrls: ['./login.css'],
@@ -27,8 +23,8 @@ export class LoginComponent {
 
   constructor() {
     this.form = this.fb.group({
-      employeeId: ['', [Validators.required]],
-      password: ['', [Validators.required]],
+      employeeId: ['', Validators.required],
+      password: ['', Validators.required],
     });
   }
 
@@ -40,39 +36,33 @@ export class LoginComponent {
 
     const { employeeId, password } = this.form.value;
 
-    this.authService.login({ employeeId, password })
-      .subscribe({
-        next: () => {
-          console.log('Login success');
+    this.authService.login({ employeeId, password }).subscribe({
+      next: () => {
+        this.isLoading.set(false);
 
-          Swal.fire({
-            icon: 'success',
-            title: 'Login Successful',
-            text: 'Welcome back!',
-            timer: 1500,
-            showConfirmButton: false
-          });
+        Swal.fire({
+          icon: 'success',
+          title: 'Login Successful',
+          text: 'Welcome back!',
+          timer: 1500,
+          showConfirmButton: false
+        });
 
-          this.isLoading.set(false);
+        const role = this.authService.getUserRole();
 
-          // ✅ You can choose where to go:
-          // OPTION 1 (recommended): dashboard first
-         const role = this.authService.getUserRole();
-
-        // if (role?.toLowerCase() === 'admin') {
-        //   this.router.navigate(['/admin/assign-role']);
-        // } else {
-        //   this.router.navigate(['/dashboard']);
-        // }
-          // OPTION 2 (if testing admin):
+        
           this.router.navigate(['/dashboard']);
-        },
-        error: (err) => {
-          console.error('Login failed:', err);
-          const errorMessage = err.error?.message || err.message || `HTTP ${err.status}: ${err.statusText}`;
-          this.error.set(`Login failed: ${errorMessage}`);
-          this.isLoading.set(false);
-        },
-      });
+        
+      },
+      error: (err) => {
+        const errorMessage =
+          err?.error?.message ||
+          err?.message ||
+          `HTTP ${err?.status}: ${err?.statusText}`;
+
+        this.error.set(`Login failed: ${errorMessage}`);
+        this.isLoading.set(false);
+      }
+    });
   }
 }

@@ -14,8 +14,8 @@ namespace Translation.Service.Interfaces
 
         Task<string> InsertTranslationAsync(AddTranslationRequest request, string empId);
 
-        Task<object> GetTranslationAsync(int keyId, string languageCode);
-        Task<object> GetAllTranslationsAsync(int keyId);
+        Task<object> GetTranslationAsync(string key_name, string languageCode);
+        Task<object> GetAllTranslationsAsync(string key_name);
         Task<List<TranslationKeyWithValueDto>> GetKeysWithTranslationsAsync(string languageCode);
 
         Task DeleteKey(int id);

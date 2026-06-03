@@ -11,7 +11,7 @@ namespace Translation.API.Controllers
     [Route("api/[controller]")]
     public class TranslationValueController : ControllerBase
     {
-        
+
         private readonly ITranslationService _translationService;
 
         public TranslationValueController(ITranslationService translationService)
@@ -27,8 +27,8 @@ namespace Translation.API.Controllers
             try
             {
                 var empId = User.FindFirst("empId")?.Value;
-             
-                    var result = await _translationService.InsertTranslationAsync(request, empId);
+
+                var result = await _translationService.InsertTranslationAsync(request, empId);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -40,11 +40,11 @@ namespace Translation.API.Controllers
         //GET Translation by Key + Language (for dropdown UI)
         [HttpGet]
         [Authorize]
-        public async Task<IActionResult> GetTranslation(int keyId, string languageCode)
+        public async Task<IActionResult> GetTranslation(string key_name, string languageCode)
         {
             try
             {
-                var result = await _translationService.GetTranslationAsync(keyId, languageCode);
+                var result = await _translationService.GetTranslationAsync(key_name, languageCode);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -54,13 +54,13 @@ namespace Translation.API.Controllers
         }
 
         // GET All Translations for a Key (optional, useful later)
-        [HttpGet("all/{keyId}")]
+        [HttpGet("all/{keyName}")]
         [Authorize]
-        public async Task<IActionResult> GetAllTranslations(int keyId)
+        public async Task<IActionResult> GetAllTranslations(string keyName)
         {
             try
             {
-                var result = await _translationService.GetAllTranslationsAsync(keyId);
+                var result = await _translationService.GetAllTranslationsAsync(keyName);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -139,7 +139,7 @@ namespace Translation.API.Controllers
 
         [HttpPost("publish/{languageCode}")]
         [Authorize(Roles = "Admin,Creator")]
-        public async Task<IActionResult> PublishLanguage( string languageCode)
+        public async Task<IActionResult> PublishLanguage(string languageCode)
         {
             var result =
                 await _translationService
