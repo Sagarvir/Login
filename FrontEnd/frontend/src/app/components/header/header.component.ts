@@ -104,36 +104,57 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.translationService.requestSave();
   }
 
-  publishTranslations(): void {
-    this.translationService.publishTranslations().subscribe({
-      next: (res: any) => {
-        this.snackBar.open(
-          `Published ${res?.fileCount ?? 'all'} files successfully`,
-          'Close',
-          { duration: 3000 }
-        );
-      },
-      error: () => {
-        this.snackBar.open('Publish failed', 'Close', { duration: 3000 });
-      },
-    });
-  }
+ publishTranslations(): void {
+  this.translationService.publishTranslationsDownload().subscribe({
+    next: (blob: Blob) => {
+      const url = window.URL.createObjectURL(blob);
 
-  publishCurrentLanguage(): void {
-    const languageCode = this.translationService.getSelectedLanguage();
-    this.translationService.publishLanguage(languageCode).subscribe({
-      next: () => {
-        this.snackBar.open(
-          `${languageCode} published successfully`,
-          'Close',
-          { duration: 3000 }
-        );
-      },
-      error: () => {
-        this.snackBar.open('Publish failed', 'Close', { duration: 3000 });
-      },
-    });
-  }
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `PublishedTranslations.zip`;
+      a.click();
+
+      window.URL.revokeObjectURL(url);
+
+      this.snackBar.open('Translations published and downloaded', 'Close', {
+        duration: 3000
+      });
+    },
+    error: (error) => {
+      console.error(error);
+      this.snackBar.open('Publish download failed', 'Close', {
+        duration: 3000
+      });
+    }
+  });
+}
+
+ publishCurrentLanguage(): void {
+  const languageCode = this.translationService.getSelectedLanguage();
+
+  this.translationService.publishLanguageDownload(languageCode).subscribe({
+    next: (blob: Blob) => {
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${languageCode}_PublishedTranslations.zip`;
+      a.click();
+
+      window.URL.revokeObjectURL(url);
+
+      this.snackBar.open(`${languageCode} published and downloaded`, 'Close', {
+        duration: 3000
+      });
+    },
+    error: (error) => {
+      console.error(error);
+      this.snackBar.open('Language publish download failed', 'Close', {
+        duration: 3000
+      });
+    }
+  });
+}
 
   logout(): void {
     localStorage.removeItem('accessToken');

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using System.IO.Compression;
 using System.Text.Json;
 using System.Xml.Linq;
 using Translation.Contracts.DTO.Translation;
@@ -7,6 +8,7 @@ using Translation.DAO.Data;
 using Translation.DAO.Repositories.Interfaces;
 using Translation.Models.Entities;
 using Translation.Service.Interfaces;
+using TranslationService.DTO.Translation;
 
 
 namespace Translation.Service.Services
@@ -586,6 +588,81 @@ namespace Translation.Service.Services
                 Message = publishFolder
             };
         }
+        public async Task<PublishDownloadResponse> PublishTranslationsAsZipAsync()
+        {
+            var publishResult = await PublishTranslationsAsync();
+
+            if (!publishResult.Success)
+            {
+                return new PublishDownloadResponse
+                {
+                    Success = false,
+                    Message = publishResult.Message
+                };
+            }
+
+            var publishFolder = Path.Combine(
+                _env.ContentRootPath,
+                "PublishedTranslations",
+                publishResult.Version
+            );
+
+            var zipFileName = $"PublishedTranslations_{publishResult.Version}.zip";
+
+            using var memoryStream = new MemoryStream();
+
+            ZipFile.CreateFromDirectory(
+                publishFolder,
+                memoryStream
+            );
+
+            return new PublishDownloadResponse
+            {
+                Success = true,
+                Message = "Published and downloaded successfully",
+                FileName = zipFileName,
+                FileBytes = memoryStream.ToArray()
+            };
+        }
+
+        public async Task<PublishDownloadResponse> PublishLanguageAsZipAsync(string languageCode)
+        {
+            var publishResult = await PublishLanguageAsync(languageCode);
+
+            if (!publishResult.Success)
+            {
+                return new PublishDownloadResponse
+                {
+                    Success = false,
+                    Message = publishResult.Message
+                };
+            }
+
+            var publishFolder = Path.Combine(
+                _env.ContentRootPath,
+                "PublishedTranslations",
+                languageCode,
+                publishResult.Version
+            );
+
+            var zipFileName = $"{languageCode}_{publishResult.Version}.zip";
+
+            using var memoryStream = new MemoryStream();
+
+            ZipFile.CreateFromDirectory(
+                publishFolder,
+                memoryStream
+            );
+
+            return new PublishDownloadResponse
+            {
+                Success = true,
+                Message = $"{languageCode} published and downloaded successfully",
+                FileName = zipFileName,
+                FileBytes = memoryStream.ToArray()
+            };
+        }
+
 
     }
 }

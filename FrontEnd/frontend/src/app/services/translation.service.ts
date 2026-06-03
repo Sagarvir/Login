@@ -228,6 +228,22 @@ export class TranslationService {
       {}
     );
   }
+  
+  publishTranslationsDownload(): Observable<Blob> {
+  return this.http.post(
+    `${this.translationValueUrl}/publish/download`,
+    {},
+    { responseType: 'blob' }
+  );
+}
+
+publishLanguageDownload(languageCode: string): Observable<Blob> {
+  return this.http.post(
+    `${this.translationValueUrl}/publish/${languageCode}/download`,
+    {},
+    { responseType: 'blob' }
+  );
+}
 
   // --- Stats ---
 

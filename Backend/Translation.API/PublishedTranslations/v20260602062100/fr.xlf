@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff version="1.2">
+  <file source-language="en-US" target-language="fr">
+    <body>
+      <trans-unit id="CLIENT">
+        <source>CLIENT</source>
+        <target>nouveau client</target>
+      </trans-unit>
+      <trans-unit id="ADMIN">
+        <source>ADMIN</source>
+        <target>Connexion administrateur</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

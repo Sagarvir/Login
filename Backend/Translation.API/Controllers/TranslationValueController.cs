@@ -153,6 +153,37 @@ namespace Translation.API.Controllers
 
             return Ok(result);
         }
+        [HttpPost("publish/download")]
+        [Authorize(Roles = "Admin,Creator")]
+        public async Task<IActionResult> PublishTranslationsDownload()
+        {
+            var result = await _translationService.PublishTranslationsAsZipAsync();
+
+            if (result.FileBytes == null)
+                return BadRequest(result.Message);
+
+            return File(
+                result.FileBytes,
+                "application/zip",
+                result.FileName
+            );
+        }
+
+        [HttpPost("publish/{languageCode}/download")]
+        [Authorize(Roles = "Admin,Creator")]
+        public async Task<IActionResult> PublishLanguageDownload(string languageCode)
+        {
+            var result = await _translationService.PublishLanguageAsZipAsync(languageCode);
+
+            if (result.FileBytes == null)
+                return BadRequest(result.Message);
+
+            return File(
+                result.FileBytes,
+                "application/zip",
+                result.FileName
+            );
+        }
 
     }
 }
