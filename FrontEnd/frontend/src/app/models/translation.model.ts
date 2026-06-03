@@ -1,5 +1,7 @@
 export interface Translation {
   id?: number | string;
+  keyId?: number;
+  keyName?: string;
   translationKey: string;
   originalText: string;
   translation: string;
@@ -22,7 +24,7 @@ export interface Language {
 }
 
 export interface AddTranslationRequest {
-  keyId: number;
+  keyName: string;
   value: string;
   languageCode: string;
 }

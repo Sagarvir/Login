@@ -7,11 +7,14 @@ import {
   Subject,
   catchError,
   finalize,
+  from,
   map,
   of,
   tap,
   throwError,
 } from 'rxjs';
+import { HttpResponse, HttpErrorResponse } from '@angular/common/http';
+import { concatMap, toArray } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import {
   Translation,
@@ -25,9 +28,11 @@ import {
 export class TranslationService {
   private readonly translationKeyUrl = 'https://localhost:7199/api/TranslationKey';
   private readonly translationValueUrl = 'https://localhost:7199/api/TranslationValue';
+  private readonly translationWithValuesUrl = 'https://localhost:7199/api/TranslationValue/with-translations';
   private readonly storageKey = 'translationManager.translations';
 
   private translations: Translation[] = [];
+  private saveInProgress = false;
 
   // --- Subjects ---
 
@@ -54,10 +59,16 @@ export class TranslationService {
   // --- Save coordination ---
 
   requestSave(): void {
+    if (this.saveInProgress) {
+      return;
+    }
+
+    this.saveInProgress = true;
     this.saveRequestedSubject.next();
   }
 
   notifySaveCompleted(): void {
+    this.saveInProgress = false;
     this.saveCompletedSubject.next();
   }
 
@@ -74,17 +85,18 @@ export class TranslationService {
   // --- Translations CRUD ---
 
   loadTranslations(languageCode = 'EN'): Observable<Translation[]> {
-    const url = `${this.translationValueUrl}/with-translations?languageCode=${languageCode.toUpperCase()}`;
+    const upper = languageCode.toUpperCase();
+    const url = `${this.translationWithValuesUrl}?languageCode=${upper}`;
 
-    return this.http.get<any[]>(url).pipe(
-      tap((response) => {
-        const items = Array.isArray(response) ? response : [];
+    return this.http.get<any>(url).pipe(
+      map((response) => {
+        const items = this.extractArray(response);
         const backendTranslations = items.map((item: any) =>
           this.mapApiTranslationKey(item)
         );
         this.setTranslations(backendTranslations);
+        return backendTranslations;
       }),
-      map(() => this.translations),
       catchError((error) => {
         console.error('Failed to load translations', error);
         this.setTranslations([]);
@@ -105,20 +117,35 @@ export class TranslationService {
 
   getAllTranslations(languageCode: string): Observable<{ [key: string]: string }> {
     const upper = languageCode.toUpperCase();
-    const url = `${this.translationValueUrl}/with-translations?languageCode=${upper}`;
+    const url = `${this.translationValueUrl}?languageCode=${upper}`;
 
-    return this.http.get<any[]>(url).pipe(
+    return this.http.get<any>(url).pipe(
       map((response) => {
+        const items = this.extractArray(response);
         const dictionary: { [key: string]: string } = {};
-        if (Array.isArray(response)) {
-          response.forEach((item) => {
-            const key = item.key ?? item.Key ?? item.keyName ?? item.KeyName;
-            const value = item.value ?? item.Value;
-            if (key && value) {
-              dictionary[key] = value;
-            }
-          });
-        }
+        items.forEach((item) => {
+          const key =
+            item.key_name ??
+            item.Key_name ??
+            item.key ??
+            item.Key ??
+            item.keyName ??
+            item.KeyName ??
+            item.translationKey ??
+            item.TranslationKey ??
+            item.translationKey?.keyName ??
+            item.translationKey?.KeyName;
+          const value =
+            item.value ??
+            item.Value ??
+            item.translation ??
+            item.Translation ??
+            item.text ??
+            item.Text;
+          if (key && value) {
+            dictionary[key] = value;
+          }
+        });
         return dictionary;
       }),
       catchError((error) => {
@@ -201,19 +228,22 @@ export class TranslationService {
   // notifySaveCompleted() called ONCE via finalize() — covers both success and error.
   // Do NOT call notifySaveCompleted() again after calling this method.
   upsertTranslations(translations: AddTranslationRequest[]): Observable<any> {
-    const url = `${this.translationValueUrl}/bulk`;
+    if (translations.length === 0) {
+      return of([]);
+    }
 
-    return this.http
-      .post(url, { translations }, { responseType: 'text' })
-      .pipe(
-        finalize(() => {
-          this.notifySaveCompleted();
-        }),
-        catchError((error) => {
-          console.error('Failed to save translations', error);
-          return throwError(() => error);
-        })
-      );
+    const payload = { translations };
+
+    return this.http.post<any>(`${this.translationValueUrl}/bulk`, payload).pipe(
+      finalize(() => {
+        console.log('Bulk upsert completed');
+        this.notifySaveCompleted();
+      }),
+      catchError((error: HttpErrorResponse) => {
+        console.error('Failed to bulk upsert translations', error);
+        return throwError(() => error);
+      })
+    );
   }
 
   // --- Publish ---
@@ -271,6 +301,8 @@ publishLanguageDownload(languageCode: string): Observable<Blob> {
       ? item.values
       : Array.isArray(item.Translations)
       ? item.Translations
+      : Array.isArray(item.translationValue)
+      ? item.translationValue
       : [];
 
     const nestedTranslation = nestedValues.length
@@ -281,14 +313,33 @@ publishLanguageDownload(languageCode: string): Observable<Blob> {
       : '';
 
     const id = item.id ?? item.Id ?? item.keyId ?? item.KeyId;
-    const keyName = item.keyName ?? item.KeyName ?? item.key ?? item.Key;
-    const originalText = item.originalText ?? item.OriginalText;
-    const projectId = item.projectId ?? item.ProjectId;
+    const keyId = item.keyId ?? item.KeyId ?? item.id ?? item.Id;
+    const keyName =
+      item.key_name ??
+      item.Key_name ??
+      item.keyName ??
+      item.KeyName ??
+      item.key ??
+      item.Key ??
+      item.translationKey?.keyName ??
+      item.translationKey?.KeyName ??
+      item.translationKey ??
+      item.TranslationKey;
+    const originalText =
+      item.originalText ??
+      item.OriginalText ??
+      item.original_text ??
+      item.Original_text ??
+      item.translationKey?.originalText ??
+      item.translationKey?.OriginalText;
+    const projectId =
+      item.projectId ?? item.ProjectId ?? item.project_id ?? item.Project_id;
     const translation =
-      item.translation ?? item.value ?? item.Value ?? nestedTranslation;
+      item.translation ?? item.value ?? item.Value ?? item.text ?? item.Text ?? nestedTranslation;
 
     return {
       id,
+      keyId: keyId != null ? Number(keyId) : undefined,
       translationKey: keyName || '',
       originalText: originalText || '',
       translation: translation || '',
@@ -297,6 +348,38 @@ publishLanguageDownload(languageCode: string): Observable<Blob> {
       client: '',
       project: projectId?.toString() || '',
     };
+  }
+
+  private extractArray(response: any): any[] {
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    if (!response || typeof response !== 'object') {
+      return [];
+    }
+
+    if (Array.isArray(response.data)) {
+      return response.data;
+    }
+
+    if (Array.isArray(response.items)) {
+      return response.items;
+    }
+
+    if (Array.isArray(response.value)) {
+      return response.value;
+    }
+
+    if (Array.isArray(response.translations)) {
+      return response.translations;
+    }
+
+    if (Array.isArray(response.translationValues)) {
+      return response.translationValues;
+    }
+
+    return [];
   }
 
   private loadCachedTranslations(): Translation[] {

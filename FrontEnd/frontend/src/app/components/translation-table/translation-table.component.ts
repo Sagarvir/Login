@@ -129,16 +129,30 @@ export class TranslationTableComponent implements OnInit, AfterViewInit, OnDestr
   // Loads both the table rows and the translation value dictionary for a language
   private loadAllData(languageCode: string): void {
     this.translationService.loadTranslations(languageCode).subscribe({
-      error: (err) => console.error('Failed to load translations', err),
+      next: () => {
+        this.assignTranslationsToRows();
+      },
+      error: (err) => {
+        console.error('Failed to load translations', err);
+        this.snackBar.open('Failed to load translation keys.', 'Close', {
+          duration: 4000,
+        });
+        this.dataSource.data = [];
+      },
     });
 
     this.translationService.getAllTranslations(languageCode).subscribe({
       next: (dict) => {
         this.translationDict = dict;
-        // Clear modified flags when loading fresh data
-        this.dataSource.data.forEach((item) => (item.isModified = false));
+        this.assignTranslationsToRows();
       },
-      error: (err) => console.error('Failed to load translation dictionary', err),
+      error: (err) => {
+        console.error('Failed to load translation dictionary', err);
+        this.snackBar.open('Failed to load translation values.', 'Close', {
+          duration: 4000,
+        });
+        this.translationDict = {};
+      },
     });
   }
 
@@ -149,8 +163,17 @@ export class TranslationTableComponent implements OnInit, AfterViewInit, OnDestr
     this.dataSource.filter = value.trim().toLowerCase();
   }
 
-  getTranslation(key: string): string {
-    return this.translationDict[key] || '';
+  private assignTranslationsToRows(): void {
+    if (!this.translationDict || this.dataSource.data.length === 0) {
+      return;
+    }
+
+    this.dataSource.data.forEach((item) => {
+      item.translation =
+        this.translationDict[item.translationKey] ?? item.translation ?? '';
+      item.isModified = false;
+    });
+    this.dataSource.data = [...this.dataSource.data];
   }
 
   markAsModified(element: Translation): void {
@@ -273,14 +296,14 @@ export class TranslationTableComponent implements OnInit, AfterViewInit, OnDestr
     return this.dataSource.data
       .filter((item) => item.isModified && item.translation?.trim())
       .map((item) => {
-        const keyId = item.id ? Number(item.id) : null;
-        if (!keyId) {
+        const keyName = item.translationKey?.trim() || item.keyName?.trim();
+        if (!keyName) {
           throw new Error(
-            `Cannot save: keyId missing for key '${item.translationKey}'`
+            `Cannot save: key name missing for row with original text '${item.originalText}'`
           );
         }
         return {
-          keyId,
+          keyName,
           value: item.translation,
           languageCode: this.selectedLanguage.toUpperCase(),
         };
