@@ -22,9 +22,14 @@ import { MatSelectModule } from '@angular/material/select';
 import { Subscription } from 'rxjs';
 import { TranslationService } from '../../services/translation.service';
 import { LanguageService } from '../../services/language.service';
+import { ProjectService } from '../../services/project.service';
 import { Translation, Language } from '../../models/translation.model';
+import { ProjectOption } from '../../models/project.model';
 import { DeleteConfirmDialogComponent } from '../delete-confirm-dialog/delete-confirm-dialog.component';
-import { AddTranslationDialogComponent } from '../add-translation-dialog/add-translation-dialog.component';
+import {
+  AddTranslationDialogComponent,
+  AddTranslationDialogResult,
+} from '../add-translation-dialog/add-translation-dialog.component';
 
 @Component({
   selector: 'app-translation-table',
@@ -62,6 +67,7 @@ export class TranslationTableComponent implements OnInit, AfterViewInit, OnDestr
 
   languages: Language[] = [];
   selectedLanguage = 'EN';
+  projects: ProjectOption[] = [];
 
   // Dictionary of key -> translated value for the selected language
   translationDict: { [key: string]: string } = {};
@@ -72,12 +78,14 @@ export class TranslationTableComponent implements OnInit, AfterViewInit, OnDestr
   constructor(
     private translationService: TranslationService,
     private languageService: LanguageService,
+    private projectService: ProjectService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
     this.loadLanguages();
+    this.loadProjects();
 
     // Keep table in sync with service translations$
     this.translationsSub = this.translationService
@@ -124,6 +132,15 @@ export class TranslationTableComponent implements OnInit, AfterViewInit, OnDestr
   onLanguageChange(): void {
     this.translationService.setSelectedLanguage(this.selectedLanguage);
     this.loadAllData(this.selectedLanguage);
+  }
+
+  private loadProjects(): void {
+    this.projectService.getProjects().subscribe({
+      next: (projects) => {
+        this.projects = projects;
+      },
+      error: (err) => console.error('Failed to load projects', err),
+    });
   }
 
   // Loads both the table rows and the translation value dictionary for a language
@@ -180,6 +197,16 @@ export class TranslationTableComponent implements OnInit, AfterViewInit, OnDestr
     element.isModified = true;
   }
 
+  getProjectName(element: Translation): string {
+    const projectId = element.projectId ?? (element.tags ? Number(element.tags) : undefined);
+
+    if (projectId == null || Number.isNaN(projectId)) {
+      return '';
+    }
+
+    return this.projects.find((project) => project.id === projectId)?.name || element.project || String(projectId);
+  }
+
   // --- CRUD ---
 
   updateTranslation(index: number, translation: Translation): void {
@@ -215,16 +242,17 @@ export class TranslationTableComponent implements OnInit, AfterViewInit, OnDestr
       width: '520px',
     });
 
-    dialogRef.afterClosed().subscribe((result: Translation | undefined) => {
+    dialogRef.afterClosed().subscribe((result: AddTranslationDialogResult | undefined) => {
       if (!result) return;
 
       const newTranslation: Translation = {
         translationKey: result.translationKey || '',
         originalText: result.originalText || '',
         translation: '',
-        tags: result.tags || '',
+        projectId: result.projectId,
+        tags: result.projectId?.toString() || '',
         client: '',
-        project: '',
+        project: result.projectId?.toString() || '',
       };
 
       this.translationService.addTranslation(newTranslation).subscribe({

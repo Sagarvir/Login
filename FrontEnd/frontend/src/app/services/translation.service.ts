@@ -156,42 +156,46 @@ export class TranslationService {
   }
 
   addTranslation(translation: Translation): Observable<Translation> {
-    const body = {
-      keyName: translation.translationKey,
-      originalText: translation.originalText,
-      projectId: translation.tags ? Number(translation.tags) : 1,
-    };
+    try {
+      const body = this.buildKeyPayload(translation);
 
-    return this.http.post<any>(this.translationKeyUrl, body).pipe(
-      tap(() => {
-        this.loadTranslations().subscribe();
-      }),
-      catchError((error) => {
-        console.error('Failed to add translation', error);
-        return throwError(() => error);
-      })
-    );
+      return this.http.post<any>(this.translationKeyUrl, body).pipe(
+        tap(() => {
+          this.loadTranslations().subscribe();
+        }),
+        catchError((error) => {
+          console.error('Failed to add translation', error);
+          return throwError(() => error);
+        })
+      );
+    } catch (error) {
+      return throwError(() => error);
+    }
   }
 
   updateTranslation(index: number, translation: Translation): Observable<Translation> {
     if (translation.id != null) {
-      return this.http
-        .put<Translation>(`${this.translationKeyUrl}/${translation.id}`, {
-          KeyName: translation.translationKey,
-          originalText: translation.originalText,
-          projectId: translation.tags ? Number(translation.tags) : 1,
-        })
-        .pipe(
-          tap((updated) => {
-            this.translations[index] = this.mapApiTranslationKey(updated);
-            this.saveCachedTranslations(this.translations);
-            this.translationsSubject.next([...this.translations]);
-          }),
-          catchError((error) => {
-            console.error('Failed to update translation', error);
-            return throwError(() => error);
+      try {
+        return this.http
+          .put<Translation>(`${this.translationKeyUrl}/${translation.id}`, {
+            KeyName: translation.translationKey,
+            originalText: translation.originalText,
+            projectId: this.resolveProjectId(translation),
           })
-        );
+          .pipe(
+            tap((updated) => {
+              this.translations[index] = this.mapApiTranslationKey(updated);
+              this.saveCachedTranslations(this.translations);
+              this.translationsSubject.next([...this.translations]);
+            }),
+            catchError((error) => {
+              console.error('Failed to update translation', error);
+              return throwError(() => error);
+            })
+          );
+      } catch (error) {
+        return throwError(() => error);
+      }
     }
 
     this.translations[index] = translation;
@@ -229,7 +233,11 @@ export class TranslationService {
   // Do NOT call notifySaveCompleted() again after calling this method.
   upsertTranslations(translations: AddTranslationRequest[]): Observable<any> {
     if (translations.length === 0) {
-      return of([]);
+      return of([]).pipe(
+        finalize(() => {
+          this.notifySaveCompleted();
+        })
+      );
     }
 
     const payload = { translations };
@@ -347,10 +355,35 @@ publishLanguageDownload(
       originalText: originalText || '',
       translation: translation || '',
       isModified: false,
+      projectId: projectId != null ? Number(projectId) : undefined,
       tags: projectId?.toString() || '',
       client: '',
       project: projectId?.toString() || '',
     };
+  }
+
+  private buildKeyPayload(translation: Translation): {
+    keyName: string;
+    originalText: string;
+    projectId: number;
+  } {
+    return {
+      keyName: translation.translationKey?.trim() || '',
+      originalText: translation.originalText?.trim() || '',
+      projectId: this.resolveProjectId(translation),
+    };
+  }
+
+  private resolveProjectId(translation: Translation): number {
+    const projectId =
+      translation.projectId ??
+      (translation.tags ? Number(translation.tags) : undefined);
+
+    if (!Number.isFinite(projectId) || (projectId as number) <= 0) {
+      throw new Error('Project selection is required');
+    }
+
+    return projectId as number;
   }
 
   private extractArray(response: any): any[] {

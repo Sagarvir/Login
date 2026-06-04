@@ -93,12 +93,21 @@ describe('TranslationService', () => {
       originalText: 'Hello',
       translation: '',
       isModified: false,
+      projectId: 1,
       tags: '1',
       client: '',
       project: '',
     } as any));
 
     expect(httpMock.post).toHaveBeenCalled();
+    expect(httpMock.post).toHaveBeenCalledWith(
+      'https://localhost:7199/api/TranslationKey',
+      {
+        keyName: 'HELLO',
+        originalText: 'Hello',
+        projectId: 1,
+      }
+    );
     expect(spy).toHaveBeenCalled();
   });
 
@@ -117,6 +126,7 @@ describe('TranslationService', () => {
       originalText: 'Hello',
       translation: '',
       isModified: false,
+      projectId: 1,
       tags: '1',
       client: '',
       project: '',
@@ -139,6 +149,7 @@ describe('TranslationService', () => {
       originalText: 'Hello',
       translation: '',
       isModified: false,
+      projectId: 1,
       tags: '1',
       client: '',
       project: '',
