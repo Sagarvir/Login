@@ -23,5 +23,11 @@
     <ProjectReference Include="..\Translation.Data\Translation.DAO.csproj" />
     <ProjectReference Include="..\Translation.Service\Translation.Service.csproj" />
   </ItemGroup>
+	<ItemGroup>
+		<Compile Remove="Translation.API.Tests\**" />
+		<Content Remove="Translation.API.Tests\**" />
+		<EmbeddedResource Remove="Translation.API.Tests\**" />
+		<None Remove="Translation.API.Tests\**" />
+	</ItemGroup>
 
 </Project>

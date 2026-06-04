@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Translation.Service.Tests\**" />
+    <EmbeddedResource Remove="Translation.Service.Tests\**" />
+    <None Remove="Translation.Service.Tests\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.3.0" />
@@ -17,5 +23,11 @@
     <ProjectReference Include="..\Translation.Data\Translation.DAO.csproj" />
     <ProjectReference Include="..\Translation.Models\Translation.Models.csproj" />
   </ItemGroup>
+	<ItemGroup>
+		<Compile Remove="Translation.Service.Tests\**" />
+		<Content Remove="Translation.Service.Tests\**" />
+		<EmbeddedResource Remove="Translation.Service.Tests\**" />
+		<None Remove="Translation.Service.Tests\**" />
+	</ItemGroup>
 
 </Project>

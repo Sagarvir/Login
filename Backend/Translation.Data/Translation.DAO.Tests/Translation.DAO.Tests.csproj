@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<LangVersion>latest</LangVersion>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<EnableMSTestRunner>true</EnableMSTestRunner>
+		<OutputType>Exe</OutputType>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="MSTest" Version="4.0.2" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.8" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<!--
+      Adjust these paths to match your solution layout.
+      Since this project is nested inside Translation.DAO/, go up two levels to reach solution root.
+    -->
+		<ProjectReference Include="..\..\Translation.Contracts\Translation.Contracts.csproj" />
+		<ProjectReference Include="..\..\Translation.Models\Translation.Models.csproj" />
+		<ProjectReference Include="..\Translation.DAO.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
+	</ItemGroup>
+
+</Project>

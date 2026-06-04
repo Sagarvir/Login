@@ -28,6 +28,11 @@ yarn-error.log
 !.vscode/extensions.json
 !.vscode/mcp.json
 .history/*
+.claude/
+.cursor/
+.gemini/
+.junie/
+.windsurf/
 
 # Miscellaneous
 /.angular/cache
