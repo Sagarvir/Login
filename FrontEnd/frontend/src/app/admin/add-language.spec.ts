@@ -1,8 +1,9 @@
+/// <reference types="vitest" />
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { AddLanguageComponent } from './add-language';
 import { HttpClient } from '@angular/common/http';
 import { of, throwError } from 'rxjs';
-import { vi } from 'vitest';
+import { vi, describe, it, expect, beforeEach, beforeAll } from 'vitest';
 import Swal from 'sweetalert2';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
@@ -74,7 +75,8 @@ describe('AddLanguageComponent', () => {
       'https://localhost:7199/api/Language',
       {
         id: 0,
-        name: 'English'
+        name: 'English',
+        code: 'EN',
       }
     );
   });

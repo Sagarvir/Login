@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<LangVersion>latest</LangVersion>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<EnableMSTestRunner>true</EnableMSTestRunner>
+		<OutputType>Exe</OutputType>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="MSTest" Version="4.0.2" />
+		<PackageReference Include="Moq" Version="4.20.70" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.8" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<!--
+      Adjust paths to match your solution layout.
+      Test project is nested inside Translation.API/, so go up two levels to solution root.
+    -->
+		<ProjectReference Include="..\..\Translation.Contracts\Translation.Contracts.csproj" />
+		<ProjectReference Include="..\..\Translation.Models\Translation.Models.csproj" />
+		<ProjectReference Include="..\..\Translation.Service\Translation.Service.csproj" />
+		<ProjectReference Include="..\Translation.API.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
+	</ItemGroup>
+
+</Project>

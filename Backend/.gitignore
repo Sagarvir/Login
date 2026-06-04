@@ -487,3 +487,6 @@ $RECYCLE.BIN/
 bin/
 obj/
 appsettings.json
+appsettings.Development.json
+Properties/launchSettings.json
+Translation.API/PublishedTranslations/

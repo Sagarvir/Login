@@ -4,7 +4,14 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Translation.DAO.Tests\**" />
+    <EmbeddedResource Remove="Translation.DAO.Tests\**" />
+    <None Remove="Translation.DAO.Tests\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.8" />
@@ -23,5 +30,11 @@
     <ProjectReference Include="..\Translation.Contracts\Translation.Contracts.csproj" />
     <ProjectReference Include="..\Translation.Models\Translation.Models.csproj" />
   </ItemGroup>
+	<ItemGroup>
+		<Compile Remove="Translation.DAO.Tests\**" />
+		<Content Remove="Translation.DAO.Tests\**" />
+		<EmbeddedResource Remove="Translation.DAO.Tests\**" />
+		<None Remove="Translation.DAO.Tests\**" />
+	</ItemGroup>
 
 </Project>
