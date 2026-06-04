@@ -13,6 +13,18 @@
         <span>{{ isSaving ? 'Saving...' : 'Save Translations' }}</span>
       </button>
 
+     <div class="file-type-container">
+  <span class="file-type-title">File Type</span>
+
+  <mat-form-field appearance="outline" class="file-type-dropdown">
+    <mat-select [(value)]="selectedFileType">
+      <mat-option value="both">Both Files</mat-option>
+      <mat-option value="json">JSON Only</mat-option>
+      <mat-option value="xlf">XLIFF Only</mat-option>
+    </mat-select>
+  </mat-form-field>
+</div>
+
       <button
         mat-raised-button
         class="save-btn"

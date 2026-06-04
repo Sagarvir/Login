@@ -23,8 +23,8 @@ namespace Translation.Service.Interfaces
         Task<string> UpsertTranslationsV2Async(BulkTranslationRequestV2 request, string empId);
         Task<PublishTranslationResponse> PublishTranslationsAsync();
         Task<PublishTranslationResponse> PublishLanguageAsync(string languageCode);
-        Task<PublishDownloadResponse> PublishTranslationsAsZipAsync();
+        Task<PublishDownloadResponse> PublishTranslationsAsZipAsync(string fileType);
 
-        Task<PublishDownloadResponse> PublishLanguageAsZipAsync(string languageCode);
+        Task<PublishDownloadResponse> PublishLanguageAsZipAsync(string languageCode, string fileType);
     }
 }

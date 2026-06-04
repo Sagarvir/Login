@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff version="1.2">
+  <file source-language="en" target-language="en">
+    <body>
+      <trans-unit id="6">
+        <source>congratulations team </source>
+        <target>congratulations team</target>
+      </trans-unit>
+      <trans-unit id="12">
+        <source>offsite tracking</source>
+        <target>offsite commit</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

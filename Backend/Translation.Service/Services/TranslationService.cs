@@ -606,7 +606,7 @@ namespace Translation.Service.Services
                 Message = publishFolder
             };
         }
-        public async Task<PublishDownloadResponse> PublishTranslationsAsZipAsync()
+        public async Task<PublishDownloadResponse> PublishTranslationsAsZipAsync(string fileType)
         {
             var publishResult = await PublishTranslationsAsync();
 
@@ -625,14 +625,31 @@ namespace Translation.Service.Services
                 publishResult.Version
             );
 
-            var zipFileName = $"PublishedTranslations_{publishResult.Version}.zip";
+            var zipFileName = $"PublishedTranslations_{publishResult.Version}_{fileType}.zip";
+
+            var files = GetFilesByType(publishFolder, fileType);
+
+            if (!files.Any())
+            {
+                return new PublishDownloadResponse
+                {
+                    Success = false,
+                    Message = $"No {fileType} files found to download."
+                };
+            }
 
             using var memoryStream = new MemoryStream();
 
-            ZipFile.CreateFromDirectory(
-                publishFolder,
-                memoryStream
-            );
+            using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
+            {
+                foreach (var file in files)
+                {
+                    archive.CreateEntryFromFile(
+                        file,
+                        Path.GetFileName(file)
+                    );
+                }
+            }
 
             return new PublishDownloadResponse
             {
@@ -643,7 +660,7 @@ namespace Translation.Service.Services
             };
         }
 
-        public async Task<PublishDownloadResponse> PublishLanguageAsZipAsync(string languageCode)
+        public async Task<PublishDownloadResponse> PublishLanguageAsZipAsync(string languageCode, string fileType)
         {
             var publishResult = await PublishLanguageAsync(languageCode);
 
@@ -663,14 +680,31 @@ namespace Translation.Service.Services
                 publishResult.Version
             );
 
-            var zipFileName = $"{languageCode}_{publishResult.Version}.zip";
+            var zipFileName = $"{languageCode}_{publishResult.Version}_{fileType}.zip";
+
+            var files = GetFilesByType(publishFolder, fileType);
+
+            if (!files.Any())
+            {
+                return new PublishDownloadResponse
+                {
+                    Success = false,
+                    Message = $"No {fileType} files found to download."
+                };
+            }
 
             using var memoryStream = new MemoryStream();
 
-            ZipFile.CreateFromDirectory(
-                publishFolder,
-                memoryStream
-            );
+            using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
+            {
+                foreach (var file in files)
+                {
+                    archive.CreateEntryFromFile(
+                        file,
+                        Path.GetFileName(file)
+                    );
+                }
+            }
 
             return new PublishDownloadResponse
             {
@@ -681,6 +715,27 @@ namespace Translation.Service.Services
             };
         }
 
+        private string[] GetFilesByType(string publishFolder, string fileType)
+        {
+            var normalizedType = fileType?.Trim().ToLower() ?? "both";
 
+            var files = Directory.GetFiles(publishFolder);
+
+            if (normalizedType == "json")
+            {
+                return files
+                    .Where(f => Path.GetExtension(f).ToLower() == ".json")
+                    .ToArray();
+            }
+
+            if (normalizedType == "xlf")
+            {
+                return files
+                    .Where(f => Path.GetExtension(f).ToLower() == ".xlf")
+                    .ToArray();
+            }
+
+            return files;
+        }
     }
 }

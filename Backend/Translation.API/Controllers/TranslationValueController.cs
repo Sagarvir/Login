@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Translation.Contracts.DTO.Translation;
 using Translation.Service.Interfaces;
+using TranslationService.DTO.Translation;
 
 
 namespace Translation.API.Controllers
@@ -162,11 +163,15 @@ namespace Translation.API.Controllers
 
             return Ok(result);
         }
+
         [HttpPost("publish/download")]
         [Authorize(Roles = "Admin,Creator")]
-        public async Task<IActionResult> PublishTranslationsDownload()
+        public async Task<IActionResult> PublishTranslationsDownload(
+      PublishDownloadRequest request)
         {
-            var result = await _translationService.PublishTranslationsAsZipAsync();
+            var result =
+                await _translationService
+                    .PublishTranslationsAsZipAsync(request.FileType);
 
             if (result.FileBytes == null)
                 return BadRequest(result.Message);
@@ -180,9 +185,15 @@ namespace Translation.API.Controllers
 
         [HttpPost("publish/{languageCode}/download")]
         [Authorize(Roles = "Admin,Creator")]
-        public async Task<IActionResult> PublishLanguageDownload(string languageCode)
+        public async Task<IActionResult> PublishLanguageDownload(
+    string languageCode,
+    PublishDownloadRequest request)
         {
-            var result = await _translationService.PublishLanguageAsZipAsync(languageCode);
+            var result =
+                await _translationService
+                    .PublishLanguageAsZipAsync(
+                        languageCode,
+                        request.FileType);
 
             if (result.FileBytes == null)
                 return BadRequest(result.Message);

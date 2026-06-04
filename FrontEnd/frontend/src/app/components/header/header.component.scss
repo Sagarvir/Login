@@ -77,6 +77,39 @@
       box-shadow: 0 8px 16px rgba(15, 76, 129, 0.2);
     }
 
+    .file-type-dropdown {
+  width: 220px;
+}
+
+::ng-deep .file-type-dropdown .mat-mdc-text-field-wrapper {
+  background-color: #0f4c81 !important; /* same blue as buttons */
+  border-radius: 12px !important;
+}
+
+::ng-deep .file-type-dropdown .mat-mdc-select-value {
+  color: white !important;
+}
+
+::ng-deep .file-type-dropdown .mat-mdc-select-arrow {
+  color: white !important;
+}
+
+::ng-deep .file-type-dropdown .mdc-notched-outline * {
+  border-color: #0f4c81 !important;
+}
+.file-type-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.file-type-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  margin-left: 4px;
+}
+
     .logout-btn {
       width: 44px;
       height: 44px;

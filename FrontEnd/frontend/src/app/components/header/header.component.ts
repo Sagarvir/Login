@@ -16,6 +16,8 @@ import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { TranslationService } from '../../services/translation.service';
 import { AuthService } from '../../core/services/auth.service';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
 
 @Component({
   selector: 'app-header',
@@ -28,6 +30,8 @@ import { AuthService } from '../../core/services/auth.service';
     MatIconModule,
     MatTooltipModule,
     MatSnackBarModule,
+    MatSelectModule,
+  MatFormFieldModule,
   ],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss',
@@ -40,6 +44,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   };
 
   isSaving = false;
+  selectedFileType = 'both';
 
   private saveCompletedSub: Subscription | null = null;
   private saveTimeoutId: ReturnType<typeof setTimeout> | null = null;
@@ -104,56 +109,79 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.translationService.requestSave();
   }
 
+ 
+
  publishTranslations(): void {
-  this.translationService.publishTranslationsDownload().subscribe({
-    next: (blob: Blob) => {
-      const url = window.URL.createObjectURL(blob);
+  const fileType = this.selectedFileType;
 
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `PublishedTranslations.zip`;
-      a.click();
+  if (!fileType) {
+    return;
+  }
 
-      window.URL.revokeObjectURL(url);
+  this.translationService
+    .publishTranslationsDownload(this.selectedFileType)
+    .subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
 
-      this.snackBar.open('Translations published and downloaded', 'Close', {
-        duration: 3000
-      });
-    },
-    error: (error) => {
-      console.error(error);
-      this.snackBar.open('Publish download failed', 'Close', {
-        duration: 3000
-      });
-    }
-  });
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `PublishedTranslations_${fileType}.zip`;
+        a.click();
+
+        window.URL.revokeObjectURL(url);
+
+        this.snackBar.open(
+          `Translations published and ${fileType} files downloaded`,
+          'Close',
+          { duration: 3000 }
+        );
+      },
+      error: (error) => {
+        console.error(error);
+        this.snackBar.open('Publish download failed', 'Close', {
+          duration: 3000
+        });
+      }
+    });
 }
 
- publishCurrentLanguage(): void {
-  const languageCode = this.translationService.getSelectedLanguage();
+  publishCurrentLanguage(): void {
+  const fileType = this.selectedFileType;
 
-  this.translationService.publishLanguageDownload(languageCode).subscribe({
-    next: (blob: Blob) => {
-      const url = window.URL.createObjectURL(blob);
+  if (!fileType) {
+    return;
+  }
 
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${languageCode}_PublishedTranslations.zip`;
-      a.click();
+  const languageCode =
+    this.translationService.getSelectedLanguage();
 
-      window.URL.revokeObjectURL(url);
+  this.translationService
+    .publishLanguageDownload(languageCode, this.selectedFileType)
+    .subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
 
-      this.snackBar.open(`${languageCode} published and downloaded`, 'Close', {
-        duration: 3000
-      });
-    },
-    error: (error) => {
-      console.error(error);
-      this.snackBar.open('Language publish download failed', 'Close', {
-        duration: 3000
-      });
-    }
-  });
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${languageCode}_${fileType}_PublishedTranslations.zip`;
+        a.click();
+
+        window.URL.revokeObjectURL(url);
+
+        this.snackBar.open(
+          `${languageCode} ${fileType} files downloaded`,
+          'Close',
+          { duration: 3000 }
+        );
+      },
+      error: (error) => {
+        console.error(error);
+        this.snackBar.open('Language publish download failed', 'Close', {
+          duration: 3000
+        });
+      }
+    });
 }
 
   logout(): void {
