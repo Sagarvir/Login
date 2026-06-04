@@ -1,11 +1,17 @@
 <Solution>
   <Folder Name="/Solution Items/" />
   <Project Path="Translation.API/Translation.API.csproj" Id="f285546c-a8f9-4a5a-b1df-ee1669bc509a" />
-  <Project Path="Translation.API/Translation.API.Tests/Translation.API.Tests.csproj" Id="a5035e16-5c9c-4373-85fa-e1bcf2090039" />
+  <Project Path="Translation.API/Translation.API.Tests/Translation.API.Tests.csproj" Id="a5035e16-5c9c-4373-85fa-e1bcf2090039">
+    <Build Solution="Debug|*" Project="false" />
+  </Project>
   <Project Path="Translation.Contracts/Translation.Contracts.csproj" Id="f7a11e90-9962-44ba-8196-1bd66981400a" />
   <Project Path="Translation.Data/Translation.DAO.csproj" Id="b761303c-5cf1-4c18-84dd-07e9193ce06c" />
-  <Project Path="Translation.Data/Translation.DAO.Tests/Translation.DAO.Tests.csproj" Id="b2a6874b-161f-453d-8916-b03aec972243" />
+  <Project Path="Translation.Data/Translation.DAO.Tests/Translation.DAO.Tests.csproj" Id="b2a6874b-161f-453d-8916-b03aec972243">
+    <Build Solution="Debug|*" Project="false" />
+  </Project>
   <Project Path="Translation.Models/Translation.Models.csproj" Id="8c922c8a-dc08-47a8-928b-caec307dc691" />
   <Project Path="Translation.Service/Translation.Service.csproj" Id="5d2da7c5-6506-4394-b12b-695bf34c6bf2" />
-  <Project Path="Translation.Service/Translation.Service.Tests/Translation.Service.Tests.csproj" Id="11e04b15-bfb6-4bbf-85c2-aae01bd1d7ae" />
+  <Project Path="Translation.Service/Translation.Service.Tests/Translation.Service.Tests.csproj" Id="11e04b15-bfb6-4bbf-85c2-aae01bd1d7ae">
+    <Build Solution="Debug|*" Project="false" />
+  </Project>
 </Solution>
