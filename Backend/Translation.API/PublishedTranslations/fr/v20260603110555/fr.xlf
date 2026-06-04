@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff version="1.2">
+  <file source-language="en" target-language="fr">
+    <body>
+      <trans-unit id="28">
+        <source>new client</source>
+        <target>nouveau client</target>
+      </trans-unit>
+      <trans-unit id="30">
+        <source>admin login</source>
+        <target>Connexion administrateur</target>
+      </trans-unit>
+      <trans-unit id="6">
+        <source>congratulations team </source>
+        <target>congo teameau</target>
+      </trans-unit>
+      <trans-unit id="35">
+        <source>commit file</source>
+        <target>commite</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

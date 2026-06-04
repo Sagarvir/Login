@@ -29,7 +29,11 @@ namespace Translation.API.Controllers
                 var empId = User.FindFirst("empId")?.Value;
 
                 var result = await _translationService.InsertTranslationAsync(request, empId);
-                return Ok(result);
+                return Ok(new
+                {
+                    success = true,
+                    message = result
+                });
             }
             catch (Exception ex)
             {
@@ -80,7 +84,12 @@ namespace Translation.API.Controllers
             try
             {
                 var result = await _translationService.InsertTranslationsAsync(request, empId);
-                return Ok(result);
+
+                return Ok(new
+                {
+                    success = true,
+                    message = result
+                });
             }
             catch (Exception ex)
             {
