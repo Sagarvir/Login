@@ -84,6 +84,7 @@ export class TranslationTableComponent implements OnInit, AfterViewInit, OnDestr
   ) {}
 
   ngOnInit(): void {
+    this.setFilterPredicate();
     this.loadLanguages();
     this.loadProjects();
 
@@ -138,6 +139,7 @@ export class TranslationTableComponent implements OnInit, AfterViewInit, OnDestr
     this.projectService.getProjects().subscribe({
       next: (projects) => {
         this.projects = projects;
+        this.assignProjectNames();
       },
       error: (err) => console.error('Failed to load projects', err),
     });
@@ -148,6 +150,7 @@ export class TranslationTableComponent implements OnInit, AfterViewInit, OnDestr
     this.translationService.loadTranslations(languageCode).subscribe({
       next: () => {
         this.assignTranslationsToRows();
+        this.assignProjectNames();
       },
       error: (err) => {
         console.error('Failed to load translations', err);
@@ -205,6 +208,36 @@ export class TranslationTableComponent implements OnInit, AfterViewInit, OnDestr
     }
 
     return this.projects.find((project) => project.id === projectId)?.name || element.project || String(projectId);
+  }
+
+  private setFilterPredicate(): void {
+    this.dataSource.filterPredicate = (data: Translation, filter: string) => {
+      const search = filter.trim().toLowerCase();
+      const fields = [
+        data.translationKey,
+        data.originalText,
+        data.projectName,
+        data.project,
+        data.tags,
+      ];
+      return fields
+        .filter((value): value is string => typeof value === 'string' && value.length > 0)
+        .some((value) => value.toLowerCase().includes(search));
+    };
+  }
+
+  private assignProjectNames(): void {
+    if (this.projects.length === 0 || this.dataSource.data.length === 0) {
+      return;
+    }
+
+    this.dataSource.data = this.dataSource.data.map((item) => ({
+      ...item,
+      projectName:
+        this.projects.find((project) => project.id === item.projectId)?.name || item.project || '',
+    }));
+
+    this.dataSource.filter = this.dataSource.filter;
   }
 
   // --- CRUD ---

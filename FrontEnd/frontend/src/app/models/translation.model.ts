@@ -10,6 +10,7 @@ export interface Translation {
   client?: string;
   project?: string;
   projectId?: number;
+  projectName?: string;
 }
 
 export interface DashboardStats {
