@@ -21,7 +21,8 @@ namespace Translation.Service.Interfaces
         Task DeleteKey(int id);
 
         Task<string> UpsertTranslationsV2Async(BulkTranslationRequestV2 request, string empId);
-        Task<PublishTranslationResponse> PublishTranslationsAsync();
+        Task<string> DeleteTranslationsAsync(string keyName, string languageCode);
+        Task <PublishTranslationResponse> PublishTranslationsAsync();
         Task<PublishTranslationResponse> PublishLanguageAsync(string languageCode);
         Task<PublishDownloadResponse> PublishTranslationsAsZipAsync(string fileType);
 

@@ -132,6 +132,28 @@ namespace Translation.API.Controllers
             }
         }
 
+        // Delete the Translations for a specific Translation KeyName (Translator only)
+        [HttpDelete("{keyName}/{languageCode}")]
+        [Authorize(Roles = "Translator")]
+        public async Task<IActionResult> DeleteTranslations(string keyName, string languageCode)
+        {
+            try
+            {
+                var result = await _translationService.DeleteTranslationsAsync(keyName, languageCode);
+                return Ok(new
+                {
+                    success = true,
+                    message = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+
+
         // Publish Translations (Admin/Creator only)
         [HttpPost("publish")]
         [Authorize(Roles = "Admin,Creator")]

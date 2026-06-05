@@ -32,5 +32,6 @@ namespace Translation.DAO.Repositories.Interfaces
         Task<List<TranslationValue>> GetAllTranslationsForPublishAsync();
         Task<List<TranslationValue>> GetTranslationsByLanguageAsync(string languageCode);
         Task SavePublishRecordAsync(TranslationPublish publishRecord);
+
     }
 }
