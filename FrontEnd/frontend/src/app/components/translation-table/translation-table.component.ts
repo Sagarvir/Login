@@ -26,10 +26,9 @@ import { ProjectService } from '../../services/project.service';
 import { Translation, Language } from '../../models/translation.model';
 import { ProjectOption } from '../../models/project.model';
 import { DeleteConfirmDialogComponent } from '../delete-confirm-dialog/delete-confirm-dialog.component';
-import {
-  AddTranslationDialogComponent,
-  AddTranslationDialogResult,
-} from '../add-translation-dialog/add-translation-dialog.component';
+import { AddTranslationDialogComponent, AddTranslationDialogResult } from '../add-translation-dialog/add-translation-dialog.component';
+import { AuthService } from '../../core/services/auth.service';
+import { isDataSource } from '@angular/cdk/collections';
 
 @Component({
   selector: 'app-translation-table',
@@ -80,9 +79,21 @@ export class TranslationTableComponent implements OnInit, AfterViewInit, OnDestr
     private languageService: LanguageService,
     private projectService: ProjectService,
     private snackBar: MatSnackBar,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+     private authService: AuthService
   ) {}
-
+  isCreator(): boolean {
+  return this.authService.isCreator(); // adjust based on your logic
+}
+isTranslator(): boolean {
+  return this.authService.isTranslator(); // adjust based on your logic
+}
+isAdmin(): boolean {
+  return this.authService.isAdmin(); // adjust based on your logic
+}
+isViewer(): boolean {
+  return this.authService.hasRole('viewer'); // adjust based on your logic
+}
   ngOnInit(): void {
     this.setFilterPredicate();
     this.loadLanguages();
@@ -131,6 +142,10 @@ export class TranslationTableComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   onLanguageChange(): void {
+     if (!(this.isCreator()||this.isAdmin()||this.isViewer())) {
+    this.snackBar.open('Access denied', 'Close', { duration: 3000 });
+    return;
+  }
     this.translationService.setSelectedLanguage(this.selectedLanguage);
     this.loadAllData(this.selectedLanguage);
   }

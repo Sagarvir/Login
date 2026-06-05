@@ -1,8 +1,8 @@
-<mat-toolbar class="header">
+<mat-toolbar class="header" *ngIf="isCreator() || isTranslator() || isAdmin()">
   <div class="toolbar-content">
-    
 
-    <div class="actions">
+    <!-- ✅ TRANSLATOR ACTIONS -->
+    <div class="actions" *ngIf="isTranslator()">
       <button
         mat-raised-button
         (click)="saveTranslations()"
@@ -12,18 +12,22 @@
         <mat-icon>save</mat-icon>
         <span>{{ isSaving ? 'Saving...' : 'Save Translations' }}</span>
       </button>
+    </div>
 
-     <div class="file-type-container">
-  <span class="file-type-title">File Type</span>
+    <!-- ✅ CREATOR / ADMIN ACTIONS -->
+    <div class="actions" *ngIf="isCreator() || isAdmin()">
 
-  <mat-form-field appearance="outline" class="file-type-dropdown">
-    <mat-select [(value)]="selectedFileType">
-      <mat-option value="both">Both Files</mat-option>
-      <mat-option value="json">JSON Only</mat-option>
-      <mat-option value="xlf">XLIFF Only</mat-option>
-    </mat-select>
-  </mat-form-field>
-</div>
+      <div class="file-type-container">
+        <span class="file-type-title">File Type</span>
+
+        <mat-form-field appearance="outline" class="file-type-dropdown">
+          <mat-select [(value)]="selectedFileType">
+            <mat-option value="both">Both Files</mat-option>
+            <mat-option value="json">JSON Only</mat-option>
+            <mat-option value="xlf">XLIFF Only</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
 
       <button
         mat-raised-button
@@ -35,16 +39,16 @@
       </button>
 
       <button
-  mat-raised-button
-  class="save-btn"
-  color="accent"
-  (click)="publishCurrentLanguage()">
-
-  <mat-icon>publish</mat-icon>
-
-  Publish Current Language
-</button>
+        mat-raised-button
+        class="save-btn"
+        color="accent"
+        (click)="publishCurrentLanguage()"
+      >
+        <mat-icon>publish</mat-icon>
+        Publish Current Language
+      </button>
 
     </div>
+
   </div>
 </mat-toolbar>

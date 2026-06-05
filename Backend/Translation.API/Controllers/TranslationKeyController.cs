@@ -17,10 +17,9 @@ namespace Translation.API.Controllers
         {
             _service = service;
         }
-
         // Create a new translation key
         [HttpPost]
-        [Authorize(Roles = "Creator,Admin")]
+        [Authorize(Roles = "Creator")]
         public async Task<IActionResult> CreateKey(CreateKeyRequest request)
         {
             try
@@ -37,7 +36,7 @@ namespace Translation.API.Controllers
 
         // Create multiple translation keys in bulk 
         [HttpPost("bulk")]
-        [Authorize(Roles = "Creator,Admin")]
+        [Authorize(Roles = "Creator")]
         public async Task<IActionResult> CreateKeys(CreateKeysRequest request)
         {
             try

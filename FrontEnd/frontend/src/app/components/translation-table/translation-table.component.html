@@ -10,12 +10,10 @@
         />
       </mat-form-field>
 
-      <mat-form-field appearance="outline" class="language-select">
+      <mat-form-field appearance="outline" class="language-select" *ngIf="isCreator()||isAdmin()||isViewer()">
         <mat-label>Language</mat-label>
         <mat-select [(ngModel)]="selectedLanguage" (selectionChange)="onLanguageChange()">
-          @for (lang of languages; track lang.code) {
-            <mat-option [value]="lang.code">{{ lang.name }}</mat-option>
-          }
+          <mat-option *ngFor="let lang of languages" [value]="lang.code">{{ lang.name }}</mat-option>
         </mat-select>
       </mat-form-field>
 
@@ -24,6 +22,7 @@
         color="primary"
         (click)="addNewTranslation()"
         class="add-btn"
+        *ngIf="isCreator()"
       >
         <mat-icon>add</mat-icon>
         <span>Create Translation</span>
