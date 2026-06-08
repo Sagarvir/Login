@@ -1,0 +1,45 @@
+<h2 mat-dialog-title>Update Project Name</h2>
+<mat-dialog-content>
+  <form [formGroup]="form" class="dialog-form">
+    <mat-form-field appearance="outline">
+      <mat-label>Project</mat-label>
+      <mat-select
+        formControlName="projectId"
+        (selectionChange)="onProjectSelected($event.value)"
+      >
+        @if (loadingProjects()) {
+          <mat-option disabled>Loading projects...</mat-option>
+        } @else {
+          @for (project of projects(); track project.id) {
+            <mat-option [value]="project.id">{{ project.id }} - {{ project.name }}</mat-option>
+          }
+        }
+      </mat-select>
+      @if (projectLoadError()) {
+        <mat-error>{{ projectLoadError() }}</mat-error>
+      }
+      @if (form.controls['projectId'].invalid && form.controls['projectId'].touched) {
+        <mat-error>Project selection is required.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>New Project Name</mat-label>
+      <input matInput formControlName="newName" placeholder="Enter new project name" />
+      @if (form.controls['newName'].invalid && form.controls['newName'].touched) {
+        <mat-error>Project name is required.</mat-error>
+      }
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancel</button>
+  <button
+    mat-raised-button
+    color="primary"
+    (click)="submit()"
+    [disabled]="form.invalid || loadingProjects()"
+  >
+    Submit
+  </button>
+</mat-dialog-actions>

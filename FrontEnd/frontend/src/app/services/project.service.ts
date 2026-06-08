@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, catchError, map, of } from 'rxjs';
+import { Observable, catchError, map, of, throwError } from 'rxjs';
 import { ProjectOption } from '../models/project.model';
 
 @Injectable({
@@ -16,6 +16,19 @@ export class ProjectService {
       catchError((error) => {
         console.error('Failed to load projects', error);
         return of([] as ProjectOption[]);
+      })
+    );
+  }
+
+  updateProject(projectId: number, newName: string): Observable<any> {
+    const url = `${this.projectUrl}?projectId=${projectId}&newName=${encodeURIComponent(
+      newName
+    )}`;
+
+    return this.http.put<any>(url, {}).pipe(
+      catchError((error) => {
+        console.error('Failed to update project', error);
+        return throwError(() => error);
       })
     );
   }

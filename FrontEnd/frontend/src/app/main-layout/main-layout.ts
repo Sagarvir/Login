@@ -16,15 +16,19 @@ import { MatIconModule } from '@angular/material/icon';
   styleUrls: ['./main-layout.css'],
 })
 export class MainLayout {
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(public authService: AuthService, private router: Router) {}
 
   isAdmin(): boolean {
     return this.authService.getUserRole()?.toLowerCase() === 'admin';
   }
 
   getRole(): string {
-  return this.authService.getUserRole() || 'User';
-}
+    return this.authService.getUserRole() || 'User';
+  }
+
+  getPreferredLanguage(): string {
+    return this.authService.getPreferredLanguage().toUpperCase();
+  }
 
   logout() {
     this.authService.logout();

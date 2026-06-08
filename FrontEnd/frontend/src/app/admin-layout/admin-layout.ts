@@ -19,13 +19,16 @@ export class AdminLayoutComponent implements OnInit {
     role: 'Admin',
   };
 
-  constructor(private authService: AuthService, private router: Router) {
+  constructor(public authService: AuthService, private router: Router) {
     const role = this.authService
   .getUserRole()
   ?.trim()
   .toLowerCase();
 
 this.userInfo.role = role || 'Admin';
+
+this.userInfo.language =
+  this.authService.getPreferredLanguage().toUpperCase();
 
 switch (role) {
   case 'admin':
@@ -49,7 +52,11 @@ switch (role) {
 }
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+  this.userInfo.language = this.authService
+    .getPreferredLanguage()
+    .toUpperCase();
+}
 
   logout() {
     this.authService.logout();   // clear token

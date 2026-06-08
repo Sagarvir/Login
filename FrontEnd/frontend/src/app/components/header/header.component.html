@@ -1,22 +1,33 @@
 <mat-toolbar class="header" *ngIf="isCreator() || isTranslator() || isAdmin()">
   <div class="toolbar-content">
+    <div class="toolbar-group left-group">
+      <div class="actions" *ngIf="isTranslator()">
+        <button
+          mat-raised-button
+          (click)="saveTranslations()"
+          [disabled]="isSaving"
+          class="save-btn"
+        >
+          <mat-icon>save</mat-icon>
+          <span>{{ isSaving ? 'Saving...' : 'Save Translations' }}</span>
+        </button>
+      </div>
 
-    <!-- ✅ TRANSLATOR ACTIONS -->
-    <div class="actions" *ngIf="isTranslator()">
-      <button
-        mat-raised-button
-        (click)="saveTranslations()"
-        [disabled]="isSaving"
-        class="save-btn"
-      >
-        <mat-icon>save</mat-icon>
-        <span>{{ isSaving ? 'Saving...' : 'Save Translations' }}</span>
-      </button>
+      <div class="admin-controls">
+        <button
+          *ngIf="isCreator() || isAdmin()"
+          mat-raised-button
+          color="primary"
+          class="save-btn update-btn"
+          (click)="openProjectUpdateDialog()"
+        >
+          <mat-icon>edit</mat-icon>
+          Update Project Name
+        </button>
+      </div>
     </div>
 
-    <!-- ✅ CREATOR / ADMIN ACTIONS -->
-    <div class="actions" *ngIf="isCreator() || isAdmin()">
-
+    <div class="toolbar-group right-group" *ngIf="isCreator() || isAdmin()">
       <div class="file-type-container">
         <span class="file-type-title">File Type</span>
 
@@ -47,8 +58,6 @@
         <mat-icon>publish</mat-icon>
         Publish Current Language
       </button>
-
     </div>
-
   </div>
 </mat-toolbar>

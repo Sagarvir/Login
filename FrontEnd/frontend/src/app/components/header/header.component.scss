@@ -12,12 +12,46 @@
 
   .toolbar-content {
     display: flex;
-    justify-content: flex-end;
-    align-items: center;
+    justify-content: space-between;
+    align-items: flex-start;
     width: 100%;
-    gap: 20px;
+    gap: 24px;
+    flex-wrap: wrap;
   }
 
+  .toolbar-group {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .left-group {
+    flex: 1 1 0;
+    min-width: 240px;
+  }
+
+  .right-group {
+    justify-content: flex-end;
+    flex: 0 1 auto;
+  }
+
+  .project-update-form {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .project-select,
+  .project-name-input,
+  .file-type-dropdown {
+    min-width: 220px;
+  }
+
+  .project-name-input {
+    flex: 1 1 320px;
+  }
 
 
    .header-info h1 {

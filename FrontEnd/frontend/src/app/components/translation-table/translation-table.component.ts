@@ -65,7 +65,7 @@ export class TranslationTableComponent implements OnInit, AfterViewInit, OnDestr
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   languages: Language[] = [];
-  selectedLanguage = 'EN';
+  selectedLanguage = 'en';
   projects: ProjectOption[] = [];
 
   // Dictionary of key -> translated value for the selected language
@@ -143,19 +143,24 @@ canEditTags(): boolean {
 
   // --- Language ---
 
-  loadLanguages(): void {
-    this.languageService.getLanguages().subscribe({
-      next: (languages) => {
-        this.languages = languages;
-        if (languages.length > 0) {
-          this.selectedLanguage = languages[0].code;
-          this.translationService.setSelectedLanguage(this.selectedLanguage);
-          this.loadAllData(this.selectedLanguage);
-        }
-      },
-      error: (err) => console.error('Failed to load languages', err),
-    });
-  }
+ loadLanguages(): void {
+  this.languageService.getLanguages().subscribe({
+    next: (languages) => {
+      this.languages = languages;
+
+      if (this.isTranslator()) {
+        this.selectedLanguage = this.authService.getPreferredLanguage();
+      } 
+      else {
+        this.selectedLanguage = languages.length > 0 ? languages[0].code : 'en';
+      }
+
+      this.translationService.setSelectedLanguage(this.selectedLanguage);
+      this.loadAllData(this.selectedLanguage);
+    },
+    error: (err) => console.error('Failed to load languages', err),
+  });
+}
 
   onLanguageChange(): void {
      if (!(this.isCreator()||this.isAdmin()||this.isViewer())) {
@@ -426,7 +431,7 @@ canEditTags(): boolean {
         return {
           key_name:keyName,
           value: item.translation,
-          languageCode: this.selectedLanguage.toUpperCase(),
+          languageCode: this.selectedLanguage.toLowerCase(),
         };
       });
   }

@@ -8,5 +8,7 @@ namespace Translation.DAO.Repositories.Interfaces
         Task<List<Project>> GetProjectsAsync();
         Task<Project?> GetProjectByIdAsync(int id);
         Task SaveChangesAsync();
+
+        Task UpdateProjectAsync(int projectId, string newName);
     }
 }
