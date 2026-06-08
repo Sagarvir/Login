@@ -22,9 +22,13 @@ import { MatSelectModule } from '@angular/material/select';
 import { Subscription } from 'rxjs';
 import { TranslationService } from '../../services/translation.service';
 import { LanguageService } from '../../services/language.service';
+import { ProjectService } from '../../services/project.service';
 import { Translation, Language } from '../../models/translation.model';
+import { ProjectOption } from '../../models/project.model';
 import { DeleteConfirmDialogComponent } from '../delete-confirm-dialog/delete-confirm-dialog.component';
-import { AddTranslationDialogComponent } from '../add-translation-dialog/add-translation-dialog.component';
+import { AddTranslationDialogComponent, AddTranslationDialogResult } from '../add-translation-dialog/add-translation-dialog.component';
+import { AuthService } from '../../core/services/auth.service';
+import { isDataSource } from '@angular/cdk/collections';
 
 @Component({
   selector: 'app-translation-table',
@@ -62,6 +66,7 @@ export class TranslationTableComponent implements OnInit, AfterViewInit, OnDestr
 
   languages: Language[] = [];
   selectedLanguage = 'EN';
+  projects: ProjectOption[] = [];
 
   // Dictionary of key -> translated value for the selected language
   translationDict: { [key: string]: string } = {};
@@ -72,12 +77,43 @@ export class TranslationTableComponent implements OnInit, AfterViewInit, OnDestr
   constructor(
     private translationService: TranslationService,
     private languageService: LanguageService,
+    private projectService: ProjectService,
     private snackBar: MatSnackBar,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+     private authService: AuthService
   ) {}
+  isCreator(): boolean {
+  return this.authService.isCreator(); // adjust based on your logic
+}
+isTranslator(): boolean {
+  return this.authService.isTranslator(); // adjust based on your logic
+}
+isAdmin(): boolean {
+  return this.authService.isAdmin(); // adjust based on your logic
+}
+isViewer(): boolean {
+  return this.authService.hasRole('viewer'); // adjust based on your logic
+}
+
+canEditTranslationKey(): boolean {
+  return this.isCreator();
+}
+
+canEditOriginalText(): boolean {
+  return this.isCreator();
+}
+
+canEditTranslation(): boolean {
+  return this.isTranslator();
+}
+canEditTags(): boolean {
+  return this.isCreator();
+}
 
   ngOnInit(): void {
+    this.setFilterPredicate();
     this.loadLanguages();
+    this.loadProjects();
 
     // Keep table in sync with service translations$
     this.translationsSub = this.translationService
@@ -122,8 +158,22 @@ export class TranslationTableComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   onLanguageChange(): void {
+     if (!(this.isCreator()||this.isAdmin()||this.isViewer())) {
+    this.snackBar.open('Access denied', 'Close', { duration: 3000 });
+    return;
+  }
     this.translationService.setSelectedLanguage(this.selectedLanguage);
     this.loadAllData(this.selectedLanguage);
+  }
+
+  private loadProjects(): void {
+    this.projectService.getProjects().subscribe({
+      next: (projects) => {
+        this.projects = projects;
+        this.assignProjectNames();
+      },
+      error: (err) => console.error('Failed to load projects', err),
+    });
   }
 
   // Loads both the table rows and the translation value dictionary for a language
@@ -131,6 +181,7 @@ export class TranslationTableComponent implements OnInit, AfterViewInit, OnDestr
     this.translationService.loadTranslations(languageCode).subscribe({
       next: () => {
         this.assignTranslationsToRows();
+        this.assignProjectNames();
       },
       error: (err) => {
         console.error('Failed to load translations', err);
@@ -180,6 +231,46 @@ export class TranslationTableComponent implements OnInit, AfterViewInit, OnDestr
     element.isModified = true;
   }
 
+  getProjectName(element: Translation): string {
+    const projectId = element.projectId ?? (element.tags ? Number(element.tags) : undefined);
+
+    if (projectId == null || Number.isNaN(projectId)) {
+      return '';
+    }
+
+    return this.projects.find((project) => project.id === projectId)?.name || element.project || String(projectId);
+  }
+
+  private setFilterPredicate(): void {
+    this.dataSource.filterPredicate = (data: Translation, filter: string) => {
+      const search = filter.trim().toLowerCase();
+      const fields = [
+        data.translationKey,
+        data.originalText,
+        data.projectName,
+        data.project,
+        data.tags,
+      ];
+      return fields
+        .filter((value): value is string => typeof value === 'string' && value.length > 0)
+        .some((value) => value.toLowerCase().includes(search));
+    };
+  }
+
+  private assignProjectNames(): void {
+    if (this.projects.length === 0 || this.dataSource.data.length === 0) {
+      return;
+    }
+
+    this.dataSource.data = this.dataSource.data.map((item) => ({
+      ...item,
+      projectName:
+        this.projects.find((project) => project.id === item.projectId)?.name || item.project || '',
+    }));
+
+    this.dataSource.filter = this.dataSource.filter;
+  }
+
   // --- CRUD ---
 
   updateTranslation(index: number, translation: Translation): void {
@@ -194,12 +285,39 @@ export class TranslationTableComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   deleteTranslation(index: number): void {
-    const dialogRef = this.dialog.open(DeleteConfirmDialogComponent);
-    dialogRef.afterClosed().subscribe((confirmed) => {
-      
-      if (!confirmed) return;
-      
+  // Permission check
+  if (!this.isCreator() && !this.isTranslator()) {
+    this.snackBar.open('You do not have permission to delete', 'Close', { duration: 3000 });
+    return;
+  }
+
+  const element = this.dataSource.data[index];
+  const keyName = element.translationKey || element.keyName || '';
+
+  if (!keyName || keyName.trim() === '') {
+    this.snackBar.open('Invalid translation key', 'Close', { duration: 3000 });
+    return;
+  }
+
+  const languageCode = this.selectedLanguage;
+
+  const dialogRef = this.dialog.open(DeleteConfirmDialogComponent);
+  dialogRef.afterClosed().subscribe((confirmed) => {
+    if (!confirmed) return;
+
+    if (this.isCreator()) {
+      // Creator: delete entire key by keyId
       this.translationService.deleteTranslation(index).subscribe({
+        next: () =>
+          this.snackBar.open('Translation key deleted', 'Close', { duration: 2000 }),
+        error: (err) => {
+          const msg = err.error?.message || err.message || 'Failed to delete key';
+          this.snackBar.open(msg, 'Close', { duration: 3000 });
+        },
+      });
+    } else if (this.isTranslator()) {
+      // Translator: delete specific translation by keyName + languageCode
+      this.translationService.deleteTranslationAsTranslator(keyName, languageCode).subscribe({
         next: () =>
           this.snackBar.open('Translation deleted', 'Close', { duration: 2000 }),
         error: (err) => {
@@ -207,24 +325,27 @@ export class TranslationTableComponent implements OnInit, AfterViewInit, OnDestr
           this.snackBar.open(msg, 'Close', { duration: 3000 });
         },
       });
-    });
-  }
+    }
+  });
+}
+  
 
   addNewTranslation(): void {
     const dialogRef = this.dialog.open(AddTranslationDialogComponent, {
       width: '520px',
     });
 
-    dialogRef.afterClosed().subscribe((result: Translation | undefined) => {
+    dialogRef.afterClosed().subscribe((result: AddTranslationDialogResult | undefined) => {
       if (!result) return;
 
       const newTranslation: Translation = {
         translationKey: result.translationKey || '',
         originalText: result.originalText || '',
         translation: '',
-        tags: result.tags || '',
+        projectId: result.projectId,
+        tags: result.projectId?.toString() || '',
         client: '',
-        project: '',
+        project: result.projectId?.toString() || '',
       };
 
       this.translationService.addTranslation(newTranslation).subscribe({

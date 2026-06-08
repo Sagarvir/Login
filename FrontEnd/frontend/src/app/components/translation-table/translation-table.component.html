@@ -6,16 +6,14 @@
         <input
           matInput
           (keyup)="applyFilter($event)"
-          placeholder="Search translations..."
+          placeholder="Search using Translation key, original text, client projects"
         />
       </mat-form-field>
 
-      <mat-form-field appearance="outline" class="language-select">
+      <mat-form-field appearance="outline" class="language-select" *ngIf="isCreator()||isAdmin()||isViewer()">
         <mat-label>Language</mat-label>
         <mat-select [(ngModel)]="selectedLanguage" (selectionChange)="onLanguageChange()">
-          @for (lang of languages; track lang.code) {
-            <mat-option [value]="lang.code">{{ lang.name }}</mat-option>
-          }
+          <mat-option *ngFor="let lang of languages" [value]="lang.code">{{ lang.name }}</mat-option>
         </mat-select>
       </mat-form-field>
 
@@ -24,6 +22,7 @@
         color="primary"
         (click)="addNewTranslation()"
         class="add-btn"
+        *ngIf="isCreator()"
       >
         <mat-icon>add</mat-icon>
         <span>Create Translation</span>
@@ -47,6 +46,8 @@
               (change)="updateTranslation(i, element)"
               placeholder="Enter translation key"
               class="editable-field"
+              [readonly]="!canEditTranslationKey()"
+              [ngClass]="{'not-allowed': !canEditTranslationKey()}"
             />
           </td>
         </ng-container>
@@ -62,6 +63,8 @@
               (change)="updateTranslation(i, element)"
               placeholder="Enter original text"
               class="editable-field"
+               [readonly]="!canEditOriginalText()"
+              [ngClass]="{'not-allowed': !canEditOriginalText()}"
             />
           </td>
         </ng-container>
@@ -77,40 +80,49 @@
               (ngModelChange)="markAsModified(element)"
               placeholder="Enter translation"
               class="editable-field"
+              [readonly]="!canEditTranslation()"
+              [ngClass]="{'not-allowed': !canEditTranslation()}"
             />
           </td>
         </ng-container>
 
         <!-- Tags Column -->
         <ng-container matColumnDef="tags">
-          <th mat-header-cell *matHeaderCellDef>Client Project Tags</th>
+          <th mat-header-cell *matHeaderCellDef>Client Project</th>
           <td mat-cell *matCellDef="let element; let i = index">
-            <input
-              matInput
-              type="text"
-              [(ngModel)]="element.tags"
-              (change)="updateTranslation(i, element)"
-              placeholder="Enter tags"
-              class="editable-field"
-            />
+            <span class="project-name"
+            [ngClass]="{'not-allowed': !canEditTags()}">{{ getProjectName(element) }}</span>
+            
           </td>
         </ng-container>
 
         <!-- Actions Column -->
-        <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef>Actions</th>
-          <td mat-cell *matCellDef="let element; let i = index">
-            <button
-              mat-icon-button
-              color="warn"
-              (click)="deleteTranslation(i)"
-              matTooltip="Delete translation"
-              class="delete-btn"
-            >
-              <mat-icon>delete</mat-icon>
-            </button>
-          </td>
-        </ng-container>
+        <!-- Actions Column -->
+<ng-container matColumnDef="actions">
+  <th mat-header-cell *matHeaderCellDef>Actions</th>
+  <td mat-cell *matCellDef="let element; let i = index">
+    <!-- Delete Button - Only visible to Creator or Translator -->
+    <button
+      *ngIf="isCreator() || isTranslator()"
+      mat-icon-button
+      color="warn"
+      (click)="deleteTranslation(i)"
+      [matTooltip]="isCreator() ? 'Delete entire translation key' : 'Delete this translation'"
+      class="delete-btn"
+    >
+      <mat-icon>delete</mat-icon>
+    </button>
+
+    <!-- Lock Icon - Shown when user lacks permission -->
+    <mat-icon
+      *ngIf="!isCreator() && !isTranslator()"
+      matTooltip="You don't have permission to delete"
+      class="lock-icon"
+    >
+      lock
+    </mat-icon>
+  </td>
+</ng-container>
 
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         <tr

@@ -361,6 +361,33 @@ namespace Translation.Service.Services
             await _repo.DeleteKeyAsync(key);
         }
 
+        // Deletes a specific translation value for a key and language after validating both values.
+        public async Task<string> DeleteTranslationsAsync(string keyName, string languageCode)
+        {
+            if (string.IsNullOrWhiteSpace(keyName))
+                throw new Exception("KeyName is required.");
+
+            if (string.IsNullOrWhiteSpace(languageCode))
+                throw new Exception("LanguageCode is required.");
+
+            var normalizedKeyName = keyName.Trim().ToUpperInvariant();
+            var normalizedLanguageCode = languageCode.Trim().ToUpperInvariant();
+
+            var keyId = await _repo.GetKeyIdByNameAsync(normalizedKeyName);
+            if (keyId == null)
+                throw new Exception("Translation key not found.");
+
+            var translation = await _repo.GetTranslationValueAsync(keyId.Value, normalizedLanguageCode);
+            if (translation == null)
+                throw new Exception($"Translation not found for KeyName '{normalizedKeyName}' and Language '{normalizedLanguageCode}'.");
+
+            await _repo.DeleteValuesAsync(new List<TranslationValue> { translation });
+
+            return $"Translation deleted successfully for KeyName '{normalizedKeyName}' and Language '{normalizedLanguageCode}'.";
+        }
+
+
+
         // Publishes all translations by generating JSON and XLF files for each language, saving them to a versioned folder, and recording the publish event in the database.
         public async Task<PublishTranslationResponse> PublishTranslationsAsync()
         {

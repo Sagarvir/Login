@@ -257,7 +257,7 @@ namespace Translation.DAO.Repositories
                 .Include(tv => tv.TranslationKey)
                 .ToListAsync();
         }
-        public async Task<List<TranslationValue>>GetTranslationsByLanguageAsync(string languageCode)
+        public async Task<List<TranslationValue>> GetTranslationsByLanguageAsync(string languageCode)
         {
             return await _context.TranslationValues
 
@@ -279,5 +279,6 @@ namespace Translation.DAO.Repositories
             _context.TranslationPublishes.Add(publishRecord);
             await _context.SaveChangesAsync();
         }
+
     }
 }

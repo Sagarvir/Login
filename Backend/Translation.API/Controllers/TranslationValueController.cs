@@ -22,7 +22,7 @@ namespace Translation.API.Controllers
 
         // Create (Create or Translation)
         [HttpPost]
-        [Authorize(Roles = "Translator,Admin")]
+        [Authorize(Roles = "Translator")]
         public async Task<IActionResult> InsertTranslation(AddTranslationRequest request)
         {
             try
@@ -76,7 +76,7 @@ namespace Translation.API.Controllers
 
         // Bulk Insert Translations
         [HttpPost("bulk")]
-        [Authorize(Roles = "Translator,Admin")]
+        [Authorize(Roles = "Translator")]
         public async Task<IActionResult> InsertTranslations(BulkTranslationRequest request)
         {
             var empId = User.FindFirst("empId")?.Value;
@@ -100,7 +100,7 @@ namespace Translation.API.Controllers
 
         // Bulk Upsert Translations (new endpoint for upsert)
         [HttpPost("bulk-v2")]
-        [Authorize(Roles = "Translator,Admin")]
+        [Authorize(Roles = "Translator")]
         public async Task<IActionResult> UpsertTranslationsV2(BulkTranslationRequestV2 request)
         {
             var empId = User.FindFirst("empId")?.Value;
@@ -131,6 +131,28 @@ namespace Translation.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        // Delete the Translations for a specific Translation KeyName (Translator only)
+        [HttpDelete("{keyName}/{languageCode}")]
+        [Authorize(Roles = "Translator")]
+        public async Task<IActionResult> DeleteTranslations(string keyName, string languageCode)
+        {
+            try
+            {
+                var result = await _translationService.DeleteTranslationsAsync(keyName, languageCode);
+                return Ok(new
+                {
+                    success = true,
+                    message = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+
 
         // Publish Translations (Admin/Creator only)
         [HttpPost("publish")]

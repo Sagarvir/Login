@@ -68,7 +68,22 @@ export class HeaderComponent implements OnInit, OnDestroy {
     };
     this.userInfo.userId = roleIdMap[role ?? ''] ?? '0';
   }
-
+  ngOnDestroy(): void {
+  this.saveCompletedSub?.unsubscribe();
+  this.clearSaveTimeout();
+}
+    isCreator(): boolean {
+  return this.authService.isCreator();
+}
+  isAdmin(): boolean {
+    return this.authService.isAdmin();
+  }
+  isTranslator(): boolean {
+    return this.authService.isTranslator();
+  }
+  isViewer(): boolean {
+    return this.authService.hasRole('viewer');  
+  }
   ngOnInit(): void {
     this.saveCompletedSub = this.translationService.saveCompleted$.subscribe(() => {
       // Run inside Angular zone, then explicitly trigger change detection.
@@ -82,44 +97,45 @@ export class HeaderComponent implements OnInit, OnDestroy {
     });
   }
 
-  ngOnDestroy(): void {
-    this.saveCompletedSub?.unsubscribe();
-    this.clearSaveTimeout();
-  }
-
   saveTranslations(): void {
-    if (this.isSaving) return;
-
-    this.isSaving = true;
-    this.cdr.detectChanges();
-
-    // Safety net: reset after 15s if saveCompleted$ never emits
-    this.saveTimeoutId = setTimeout(() => {
-      this.ngZone.run(() => {
-        if (this.isSaving) {
-          this.isSaving = false;
-          this.cdr.detectChanges();
-          this.snackBar.open('Save timed out. Please try again.', 'Close', {
-            duration: 3000,
-          });
-        }
-      });
-    }, 15000);
-
-    this.translationService.requestSave();
+  if (!this.isTranslator()) {
+    this.snackBar.open('Access denied', 'Close', { duration: 3000 });
+    return;
   }
+
+  if (this.isSaving) return;
+
+  this.isSaving = true;
+  this.cdr.detectChanges();
+
+  this.saveTimeoutId = setTimeout(() => {
+    this.ngZone.run(() => {
+      if (this.isSaving) {
+        this.isSaving = false;
+        this.cdr.detectChanges();
+        this.snackBar.open('Save timed out. Please try again.', 'Close', {
+          duration: 3000,
+        });
+      }
+    });
+  }, 15000);
+
+  this.translationService.requestSave();
+}
 
  
 
  publishTranslations(): void {
-  const fileType = this.selectedFileType;
-
-  if (!fileType) {
+  if (!(this.isCreator()||this.isAdmin())) {
+    this.snackBar.open('Access denied', 'Close', { duration: 3000 });
     return;
   }
 
+  const fileType = this.selectedFileType;
+  if (!fileType) return;
+
   this.translationService
-    .publishTranslationsDownload(this.selectedFileType)
+    .publishTranslationsDownload(fileType)
     .subscribe({
       next: (blob: Blob) => {
         const url = window.URL.createObjectURL(blob);
@@ -140,24 +156,25 @@ export class HeaderComponent implements OnInit, OnDestroy {
       error: (error) => {
         console.error(error);
         this.snackBar.open('Publish download failed', 'Close', {
-          duration: 3000
+          duration: 3000,
         });
-      }
+      },
     });
 }
 
   publishCurrentLanguage(): void {
-  const fileType = this.selectedFileType;
-
-  if (!fileType) {
+  if (!this.isCreator()) {
+    this.snackBar.open('Access denied', 'Close', { duration: 3000 });
     return;
   }
 
-  const languageCode =
-    this.translationService.getSelectedLanguage();
+  const fileType = this.selectedFileType;
+  if (!fileType) return;
+
+  const languageCode = this.translationService.getSelectedLanguage();
 
   this.translationService
-    .publishLanguageDownload(languageCode, this.selectedFileType)
+    .publishLanguageDownload(languageCode, fileType)
     .subscribe({
       next: (blob: Blob) => {
         const url = window.URL.createObjectURL(blob);
@@ -178,9 +195,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
       error: (error) => {
         console.error(error);
         this.snackBar.open('Language publish download failed', 'Close', {
-          duration: 3000
+          duration: 3000,
         });
-      }
+      },
     });
 }
 
