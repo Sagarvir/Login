@@ -17,7 +17,7 @@ namespace Translation.API.Controllers
 
         // GET all projects with their names and IDs
         [HttpGet]
-        [Authorize(Roles = "Admin,Creator,Translator")]
+        [Authorize(Roles = "Admin,Creator,Translator,Viewer")]
         public async Task<IActionResult> GetProjects()
         {
             try

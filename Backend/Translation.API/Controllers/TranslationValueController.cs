@@ -119,7 +119,7 @@ namespace Translation.API.Controllers
         // GET Keys with Translations for a Language (for management UI)
         [HttpGet("with-translations")]
         [Authorize(Roles = "Translator,Creator,Admin,Viewer")]
-        public async Task<IActionResult> GetKeysWithTranslations(string languageCode)
+        public async Task<IActionResult> GetKeysWithTranslations(string? key_name,string languageCode)
         {
             try
             {

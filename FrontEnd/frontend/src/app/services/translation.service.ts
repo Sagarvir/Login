@@ -117,32 +117,19 @@ export class TranslationService {
 
   getAllTranslations(languageCode: string): Observable<{ [key: string]: string }> {
     const upper = languageCode.toUpperCase();
-    const url = `${this.translationValueUrl}?languageCode=${upper}`;
+    // Use the "with-translations" endpoint which returns translation keys
+    // with their values; then reuse the existing mapper to build the dictionary.
+    const url = `${this.translationWithValuesUrl}?languageCode=${upper}`;
 
     return this.http.get<any>(url).pipe(
       map((response) => {
         const items = this.extractArray(response);
         const dictionary: { [key: string]: string } = {};
         items.forEach((item) => {
-          const key =
-            item.key_name ??
-            item.Key_name ??
-            item.key ??
-            item.Key ??
-            item.keyName ??
-            item.KeyName ??
-            item.translationKey ??
-            item.TranslationKey ??
-            item.translationKey?.keyName ??
-            item.translationKey?.KeyName;
-          const value =
-            item.value ??
-            item.Value ??
-            item.translation ??
-            item.Translation ??
-            item.text ??
-            item.Text;
-          if (key && value) {
+          const t = this.mapApiTranslationKey(item);
+          const key = t.translationKey?.trim();
+          const value = t.translation ?? '';
+          if (key) {
             dictionary[key] = value;
           }
         });

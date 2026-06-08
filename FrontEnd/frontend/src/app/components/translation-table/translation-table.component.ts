@@ -92,7 +92,7 @@ isAdmin(): boolean {
   return this.authService.isAdmin(); // adjust based on your logic
 }
 isViewer(): boolean {
-  return this.authService.hasRole('viewer'); // adjust based on your logic
+  return this.authService.isViewer(); // adjust based on your logic
 }
 
 canEditTranslationKey(): boolean {
@@ -424,7 +424,7 @@ canEditTags(): boolean {
           );
         }
         return {
-          keyName,
+          key_name:keyName,
           value: item.translation,
           languageCode: this.selectedLanguage.toUpperCase(),
         };
