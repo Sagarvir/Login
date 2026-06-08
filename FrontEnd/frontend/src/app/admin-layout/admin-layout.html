@@ -6,7 +6,7 @@
       <div class="header-info">
         <h1>Translation Management</h1>
         <div class="user-info">
-          <span>User: {{ userInfo.userId }} • Language: {{ userInfo.language }}</span>
+          <span>User: {{ userInfo.userId }} • Language: {{ authService.getPreferredLanguage().toUpperCase() }}</span>
           <span class="separator">•</span>
           <mat-icon class="role-icon" matTooltip="Creator Role">verified_user</mat-icon>
           <span class="role">{{ userInfo.role }}</span>

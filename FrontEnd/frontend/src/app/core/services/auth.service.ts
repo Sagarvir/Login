@@ -168,6 +168,15 @@ export class AuthService {
 
     return this.normalizeRole(rawRole);
   }
+  getPreferredLanguage(): string {
+  const payload = this.decodeToken();
+
+  if (!payload) {
+    return 'en';
+  }
+
+  return payload.preferred_language || 'en';
+}
 
   // ===== Specific helpers =====
 

@@ -39,7 +39,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 export class HeaderComponent implements OnInit, OnDestroy {
   userInfo = {
     userId: '0',
-    language: 'EN',
+    language: '',
     role: 'Creator',
   };
 
@@ -59,6 +59,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
   ) {
     this.userInfo.role = this.authService.getUserRole() || 'Creator';
 
+   this.userInfo.language = this.authService.getPreferredLanguage().toUpperCase();
+   
     const role = this.authService.getUserRole()?.trim().toLowerCase();
     const roleIdMap: Record<string, string> = {
       admin: '1',
