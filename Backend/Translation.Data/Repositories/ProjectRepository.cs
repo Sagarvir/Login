@@ -32,5 +32,15 @@ namespace Translation.DAO.Repositories
         {
             await _context.SaveChangesAsync();
         }
+
+        public async Task UpdateProjectAsync(int projectId, string newName)
+        {
+            var project = await GetProjectByIdAsync(projectId);
+            if (project != null)
+            {
+                project.Name = newName;
+                await SaveChangesAsync();
+            }
+        }
     }
 }
