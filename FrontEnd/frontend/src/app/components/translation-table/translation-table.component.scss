@@ -78,7 +78,12 @@
         background-color: #f9fafc;
       }
     }
-
+    .not-allowed {
+  cursor: not-allowed !important;
+  opacity: 0.6;
+  background-color: #f5f5f5;
+  pointer-events: auto; /* Ensure pointer-events still work for hover tooltip */
+}
     .editable-field {
       width: 100%;
       border: none;
@@ -100,7 +105,14 @@
         padding: 8px 8px;
       }
     }
-
+    .editable-field:not([readonly]):focus {
+  border-color: #1976d2;
+  box-shadow: 0 0 5px rgba(25, 118, 210, 0.3);
+}
+.editable-field[readonly] {
+  background-color: #f5f5f5;
+  border-color: #ddd;
+}
     .delete-btn {
       min-width: auto;
     }

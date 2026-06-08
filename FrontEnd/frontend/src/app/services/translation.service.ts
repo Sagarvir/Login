@@ -227,7 +227,21 @@ export class TranslationService {
     })
   );
   }
+  /**
+ * Delete entire translation key (Creator only)
+ * Calls: DELETE /api/translations/{keyName}
+ */
+deleteKeyAsCreator(keyName: string): Observable<any> {
+  return this.http.delete(`${this.translationKeyUrl}/${keyName}`);
+}
 
+/**
+ * Delete specific translation (Translator only)
+ * Calls: DELETE /api/translations/{keyName}/{languageCode}
+ */
+deleteTranslationAsTranslator(keyName: string, languageCode: string): Observable<any> {
+  return this.http.delete(`${this.translationValueUrl}/${keyName}/${languageCode}`);
+}
   // --- Bulk save ---
   // notifySaveCompleted() called ONCE via finalize() — covers both success and error.
   // Do NOT call notifySaveCompleted() again after calling this method.

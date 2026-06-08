@@ -62,7 +62,7 @@ namespace Translation.API.Controllers
 
         // Delete a translation key by ID
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Creator,Admin")]
+        [Authorize(Roles = "Creator")]
         public async Task<IActionResult> DeleteKey(int id)
         {
             try

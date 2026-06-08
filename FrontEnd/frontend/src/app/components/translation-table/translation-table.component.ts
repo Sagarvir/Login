@@ -94,6 +94,22 @@ isAdmin(): boolean {
 isViewer(): boolean {
   return this.authService.hasRole('viewer'); // adjust based on your logic
 }
+
+canEditTranslationKey(): boolean {
+  return this.isCreator();
+}
+
+canEditOriginalText(): boolean {
+  return this.isCreator();
+}
+
+canEditTranslation(): boolean {
+  return this.isTranslator();
+}
+canEditTags(): boolean {
+  return this.isCreator();
+}
+
   ngOnInit(): void {
     this.setFilterPredicate();
     this.loadLanguages();
@@ -269,12 +285,39 @@ isViewer(): boolean {
   }
 
   deleteTranslation(index: number): void {
-    const dialogRef = this.dialog.open(DeleteConfirmDialogComponent);
-    dialogRef.afterClosed().subscribe((confirmed) => {
-      
-      if (!confirmed) return;
-      
+  // Permission check
+  if (!this.isCreator() && !this.isTranslator()) {
+    this.snackBar.open('You do not have permission to delete', 'Close', { duration: 3000 });
+    return;
+  }
+
+  const element = this.dataSource.data[index];
+  const keyName = element.translationKey || element.keyName || '';
+
+  if (!keyName || keyName.trim() === '') {
+    this.snackBar.open('Invalid translation key', 'Close', { duration: 3000 });
+    return;
+  }
+
+  const languageCode = this.selectedLanguage;
+
+  const dialogRef = this.dialog.open(DeleteConfirmDialogComponent);
+  dialogRef.afterClosed().subscribe((confirmed) => {
+    if (!confirmed) return;
+
+    if (this.isCreator()) {
+      // Creator: delete entire key by keyId
       this.translationService.deleteTranslation(index).subscribe({
+        next: () =>
+          this.snackBar.open('Translation key deleted', 'Close', { duration: 2000 }),
+        error: (err) => {
+          const msg = err.error?.message || err.message || 'Failed to delete key';
+          this.snackBar.open(msg, 'Close', { duration: 3000 });
+        },
+      });
+    } else if (this.isTranslator()) {
+      // Translator: delete specific translation by keyName + languageCode
+      this.translationService.deleteTranslationAsTranslator(keyName, languageCode).subscribe({
         next: () =>
           this.snackBar.open('Translation deleted', 'Close', { duration: 2000 }),
         error: (err) => {
@@ -282,8 +325,10 @@ isViewer(): boolean {
           this.snackBar.open(msg, 'Close', { duration: 3000 });
         },
       });
-    });
-  }
+    }
+  });
+}
+  
 
   addNewTranslation(): void {
     const dialogRef = this.dialog.open(AddTranslationDialogComponent, {

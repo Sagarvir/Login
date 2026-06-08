@@ -22,7 +22,7 @@ namespace Translation.API.Controllers
 
         // Create (Create or Translation)
         [HttpPost]
-        [Authorize(Roles = "Translator,Admin")]
+        [Authorize(Roles = "Translator")]
         public async Task<IActionResult> InsertTranslation(AddTranslationRequest request)
         {
             try
@@ -76,7 +76,7 @@ namespace Translation.API.Controllers
 
         // Bulk Insert Translations
         [HttpPost("bulk")]
-        [Authorize(Roles = "Translator,Admin")]
+        [Authorize(Roles = "Translator")]
         public async Task<IActionResult> InsertTranslations(BulkTranslationRequest request)
         {
             var empId = User.FindFirst("empId")?.Value;
@@ -100,7 +100,7 @@ namespace Translation.API.Controllers
 
         // Bulk Upsert Translations (new endpoint for upsert)
         [HttpPost("bulk-v2")]
-        [Authorize(Roles = "Translator,Admin")]
+        [Authorize(Roles = "Translator")]
         public async Task<IActionResult> UpsertTranslationsV2(BulkTranslationRequestV2 request)
         {
             var empId = User.FindFirst("empId")?.Value;
