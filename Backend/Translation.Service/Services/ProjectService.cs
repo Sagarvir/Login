@@ -25,5 +25,16 @@ namespace Translation.Service.Services
                 Name = p.Name
             }).ToList();
         }
+
+        public async Task<bool> UpdateProjectNameAsync(int projectId, string newName)
+        {
+            var project = await _repo.GetProjectByIdAsync(projectId);
+            if (project == null)
+            {
+                return false; // Project not found
+            }
+            await _repo.UpdateProjectAsync(projectId, newName);
+            return true; // Update successful
+        }
     }
 }

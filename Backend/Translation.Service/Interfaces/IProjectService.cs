@@ -6,5 +6,6 @@ namespace Translation.Service.Interfaces
     public interface IProjectService
     {
         Task<List<ProjectDto>> GetProjectsAsync();
+        Task<bool> UpdateProjectNameAsync(int projectId, string newName);
     }
 }
