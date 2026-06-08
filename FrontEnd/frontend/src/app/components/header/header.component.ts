@@ -12,12 +12,15 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { TranslationService } from '../../services/translation.service';
 import { AuthService } from '../../core/services/auth.service';
-import { MatSelectModule } from '@angular/material/select';
-import { MatFormFieldModule } from '@angular/material/form-field';
+import { ProjectService } from '../../services/project.service';
+import { ProjectUpdateDialogComponent, ProjectUpdateDialogResult } from '../project-update-dialog/project-update-dialog.component';
 
 @Component({
   selector: 'app-header',
@@ -30,8 +33,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
     MatIconModule,
     MatTooltipModule,
     MatSnackBarModule,
+    MatDialogModule,
+    MatFormFieldModule,
     MatSelectModule,
-  MatFormFieldModule,
   ],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss',
@@ -51,6 +55,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   constructor(
     private translationService: TranslationService,
+    private projectService: ProjectService,
+    private dialog: MatDialog,
     private snackBar: MatSnackBar,
     private router: Router,
     private authService: AuthService,
@@ -95,6 +101,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       });
     });
+
   }
 
   saveTranslations(): void {
@@ -200,6 +207,37 @@ export class HeaderComponent implements OnInit, OnDestroy {
       },
     });
 }
+
+  openProjectUpdateDialog(): void {
+    if (!(this.isCreator() || this.isAdmin())) {
+      this.snackBar.open('Access denied', 'Close', { duration: 3000 });
+      return;
+    }
+
+    const dialogRef = this.dialog.open(ProjectUpdateDialogComponent, {
+      width: '520px',
+    });
+
+    dialogRef.afterClosed().subscribe((result: ProjectUpdateDialogResult | undefined) => {
+      if (!result) {
+        return;
+      }
+
+      this.projectService.updateProject(result.projectId, result.newName).subscribe({
+        next: () => {
+          this.snackBar.open('Project name updated successfully.', 'Close', {
+            duration: 3000,
+          });
+        },
+        error: (error) => {
+          console.error(error);
+          this.snackBar.open('Failed to update project name.', 'Close', {
+            duration: 3000,
+          });
+        },
+      });
+    });
+  }
 
   logout(): void {
     localStorage.removeItem('accessToken');
