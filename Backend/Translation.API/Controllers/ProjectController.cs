@@ -32,7 +32,7 @@ namespace Translation.API.Controllers
         }
 
         [HttpPut]
-        [Authorize(Roles = "Admin,Creator")]
+        [Authorize(Roles = "Creator")]
         public async Task<IActionResult> UpdateProjectName(int projectId, string newName)
         {
             try
