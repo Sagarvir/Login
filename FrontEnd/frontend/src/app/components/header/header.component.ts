@@ -211,7 +211,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 }
 
   openProjectUpdateDialog(): void {
-    if (!(this.isCreator() || this.isAdmin())) {
+    if (!this.isCreator()) {
       this.snackBar.open('Access denied', 'Close', { duration: 3000 });
       return;
     }
