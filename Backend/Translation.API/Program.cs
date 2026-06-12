@@ -27,6 +27,7 @@ builder.Services.AddScoped<ILanguageService, Translation.Service.Services.Langua
 builder.Services.AddScoped<ILanguageRepository, Translation.DAO.Repositories.LanguageRepository>();
 builder.Services.AddScoped<IProjectService, Translation.Service.Services.ProjectService>();
 builder.Services.AddScoped<IProjectRepository, Translation.DAO.Repositories.ProjectRepository>();
+builder.Services.AddScoped<IUserService, Translation.Service.Services.UserService>();
 var jwtKey = builder.Configuration["Jwt:Key"]
     ?? throw new InvalidOperationException("Jwt:Key is missing in configuration.");
 

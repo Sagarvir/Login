@@ -43,6 +43,8 @@ import { ProjectUpdateDialogComponent, ProjectUpdateDialogResult } from '../proj
 export class HeaderComponent implements OnInit, OnDestroy {
   userInfo = {
     userId: '0',
+    employeeId: 'Unknown',
+    userName: 'User',
     language: '',
     role: 'Creator',
   };
@@ -64,9 +66,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef
   ) {
     this.userInfo.role = this.authService.getUserRole() || 'Creator';
+    this.userInfo.userName = this.authService.getUsername() || 'User';
+    this.userInfo.employeeId =
+      this.authService.getEmployeeId() || this.authService.getUserId() || 'Unknown';
+    this.userInfo.language = this.authService.getPreferredLanguage().toUpperCase();
 
-   this.userInfo.language = this.authService.getPreferredLanguage().toUpperCase();
-   
     const role = this.authService.getUserRole()?.trim().toLowerCase();
     const roleIdMap: Record<string, string> = {
       admin: '1',
@@ -104,6 +108,25 @@ export class HeaderComponent implements OnInit, OnDestroy {
       });
     });
 
+    this.authService.loadUserProfile().subscribe({
+      next: (profile) => {
+        console.log('Header: Profile loaded:', profile);
+        if (!profile) {
+          console.log('Header: No profile returned');
+          return;
+        }
+
+        this.userInfo.userName = profile.userName || this.userInfo.userName;
+        this.userInfo.employeeId = profile.employeeId || this.userInfo.employeeId;
+        this.userInfo.language = profile.preferredLanguage?.toUpperCase() || this.userInfo.language;
+        console.log('Header: Updated userInfo:', this.userInfo);
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Header: Failed to load profile:', err);
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   saveTranslations(): void {

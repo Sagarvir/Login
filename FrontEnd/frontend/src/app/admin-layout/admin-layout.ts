@@ -1,36 +1,43 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { AuthService } from '../core/services/auth.service';
+
 @Component({
   selector: 'app-admin-layout',
   standalone: true,
   imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, MatIconModule, MatTooltipModule],
   templateUrl: './admin-layout.html',
-  styleUrls: ['./admin-layout.css']
+  styleUrls: ['./admin-layout.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminLayoutComponent implements OnInit {
   userInfo = {
     userId: '',
+    employeeId: 'Unknown',
+    userName: 'User',
     language: 'EN',
     role: 'Admin',
   };
 
-  constructor(public authService: AuthService, private router: Router) {
+  constructor(public authService: AuthService, private router: Router, private cdr: ChangeDetectorRef) {
     const role = this.authService
   .getUserRole()
   ?.trim()
   .toLowerCase();
 
-this.userInfo.role = role || 'Admin';
+    this.userInfo.role = role || 'Admin';
+    this.userInfo.userName = this.authService.getUsername() || 'User';
+    this.userInfo.employeeId =
+      this.authService.getEmployeeId() || this.authService.getUserId() || 'Unknown';
 
-this.userInfo.language =
-  this.authService.getPreferredLanguage().toUpperCase();
+    this.userInfo.language =
+      this.authService.getPreferredLanguage().toUpperCase();
 
-switch (role) {
+    switch (role) {
   case 'admin':
     this.userInfo.userId = '1';
     break;
@@ -53,10 +60,29 @@ switch (role) {
   }
 
   ngOnInit(): void {
-  this.userInfo.language = this.authService
-    .getPreferredLanguage()
-    .toUpperCase();
-}
+    console.log('AdminLayout ngOnInit - Starting profile load');
+    console.log('EmployeeId from token:', this.authService.getEmployeeId());
+    
+    this.authService.loadUserProfile().subscribe({
+      next: (profile) => {
+        console.log('Profile loaded:', profile);
+        if (profile) {
+          this.userInfo.userName = profile.userName || this.userInfo.userName;
+          this.userInfo.employeeId = profile.employeeId || this.userInfo.employeeId;
+          this.userInfo.language = profile.preferredLanguage?.toUpperCase() || this.userInfo.language;
+        } else {
+          this.userInfo.language = this.authService.getPreferredLanguage().toUpperCase();
+        }
+        console.log('UserInfo updated:', this.userInfo);
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Failed to load user profile:', err);
+        this.userInfo.language = this.authService.getPreferredLanguage().toUpperCase();
+        this.cdr.detectChanges();
+      }
+    });
+  }
 
   logout() {
     this.authService.logout();   // clear token
