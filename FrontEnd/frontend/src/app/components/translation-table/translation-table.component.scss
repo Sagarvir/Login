@@ -23,8 +23,8 @@
     ::ng-deep {
       .mdc-text-field {
         width: 80%;
-        border-radius: 10px;
-        background-color: #f6f8fb;
+        border-radius: 14px;
+        background-color: #fbfdff;
       }
 
       .mdc-line-ripple {
@@ -35,6 +35,36 @@
 
   .language-select {
     min-width: 140px;
+
+    ::ng-deep {
+      .mat-mdc-text-field-wrapper {
+        border-radius: 14px;
+        background: #fbfdff;
+      }
+
+      .mat-mdc-select-value,
+      .mat-mdc-select-value-text,
+      .mat-mdc-select-arrow {
+        color: #0f4c81 !important;
+      }
+    }
+  }
+
+  .search-field,
+  .language-select {
+    ::ng-deep {
+      .mdc-notched-outline__leading,
+      .mdc-notched-outline__notch,
+      .mdc-notched-outline__trailing {
+        border-color: rgba(15, 76, 129, 0.32) !important;
+      }
+
+      .mat-mdc-form-field.mat-focused .mdc-notched-outline__leading,
+      .mat-mdc-form-field.mat-focused .mdc-notched-outline__notch,
+      .mat-mdc-form-field.mat-focused .mdc-notched-outline__trailing {
+        border-color: #0f4c81 !important;
+      }
+    }
   }
 
   .add-btn {
@@ -65,7 +95,7 @@
       border-bottom: 1px solid #dfe5ee;
       font-size: 12px;
       text-transform: uppercase;
-      color: #6b7a90;
+      color: #0f4c81;
     }
 
     td {

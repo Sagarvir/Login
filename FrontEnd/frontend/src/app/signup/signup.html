@@ -1,36 +1,43 @@
-<form [formGroup]="form" (ngSubmit)="onSignup()">
-  <div class="error-message" *ngIf="error()">{{ error() }}</div>
+<div class="auth-page signup-page">
+  <div class="auth-shell">
+    <div class="logo-container">
+      <img src="images/eurofins-logo.png" alt="Eurofins Logo" class="eurofins-logo">
+    </div>
 
-  <input type="text" formControlName="employeeId" placeholder="Employee ID" required>
-  <div class="field-error" *ngIf="form.controls['employeeId'].touched && form.controls['employeeId'].invalid">
-    Employee ID is required.
+    <form class="auth-card" [formGroup]="form" (ngSubmit)="onSignup()">
+      <div class="error-message" *ngIf="error()">{{ error() }}</div>
+
+      <input type="text" formControlName="employeeId" placeholder="Employee ID" required>
+      <div class="field-error" *ngIf="form.controls['employeeId'].touched && form.controls['employeeId'].invalid">
+        Employee ID is required.
+      </div>
+
+      <input type="text" formControlName="firstName" placeholder="First Name" required>
+      <div class="field-error" *ngIf="form.controls['firstName'].touched && form.controls['firstName'].invalid">
+        First name is required.
+      </div>
+
+      <input type="text" formControlName="lastName" placeholder="Last Name" required>
+      <div class="field-error" *ngIf="form.controls['lastName'].touched && form.controls['lastName'].invalid">
+        Last name is required.
+      </div>
+
+      <input type="password" formControlName="password" placeholder="Password" required>
+      <div class="field-error" *ngIf="form.controls['password'].touched && form.controls['password'].invalid">
+        <span *ngIf="form.controls['password'].errors?.['required']">Password is required.</span>
+        <span *ngIf="form.controls['password'].errors?.['minlength']">Password must be at least 6 characters.</span>
+      </div>
+
+      <select formControlName="preferredLanguageId" [disabled]="isLoading()" required>
+        <option value="" disabled selected>Select Language</option>
+        <option *ngFor="let lang of languages" [value]="lang.id">
+          {{ lang.name }}
+        </option>
+      </select>
+
+      <button type="submit" [disabled]="form.disabled">
+        {{ isLoading() ? 'Signing up...' : 'Sign Up' }}
+      </button>
+    </form>
   </div>
-
-  <input type="text" formControlName="firstName" placeholder="First Name" required>
-  <div class="field-error" *ngIf="form.controls['firstName'].touched && form.controls['firstName'].invalid">
-    First name is required.
-  </div>
-
-  <input type="text" formControlName="lastName" placeholder="Last Name" required>
-  <div class="field-error" *ngIf="form.controls['lastName'].touched && form.controls['lastName'].invalid">
-    Last name is required.
-  </div>
-
-  <input type="password" formControlName="password" placeholder="Password" required>
-  <div class="field-error" *ngIf="form.controls['password'].touched && form.controls['password'].invalid">
-    <span *ngIf="form.controls['password'].errors?.['required']">Password is required.</span>
-    <span *ngIf="form.controls['password'].errors?.['minlength']">Password must be at least 6 characters.</span>
-  </div>
-
-  <!-- ✅ UPDATED DROPDOWN -->
-  <select formControlName="preferredLanguageId" [disabled]="isLoading()" required>
-    <option value="" disabled selected>Select Language</option>
-    <option *ngFor="let lang of languages" [value]="lang.id">
-      {{ lang.name }}
-    </option>
-  </select>
-
-  <button type="submit" [disabled]="form.disabled">
-    {{ isLoading() ? 'Signing up...' : 'Sign Up' }}
-  </button>
-</form>
+</div>

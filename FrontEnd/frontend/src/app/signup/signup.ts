@@ -63,8 +63,17 @@ export class SignupComponent {
             icon: 'success',
             title: 'Signup Successful',
             text: 'Please log in with your credentials',
+            background: '#ffffff',
+            color: '#173a5c',
+            iconColor: '#ff6b35',
             timer: 2000,
-            showConfirmButton: false
+            showConfirmButton: false,
+            timerProgressBar: true,
+            customClass: {
+              popup: 'eurofins-swal-popup',
+              title: 'eurofins-swal-title',
+              htmlContainer: 'eurofins-swal-content'
+            }
           });
 
           this.isLoading.set(false);

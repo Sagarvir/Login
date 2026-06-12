@@ -1,45 +1,52 @@
-<h2 mat-dialog-title>Add Translation</h2>
-<mat-dialog-content>
-  <form [formGroup]="form" class="dialog-form">
-    <mat-form-field appearance="outline">
-      <mat-label>Translation Key</mat-label>
-      <input matInput formControlName="translationKey" placeholder="Enter translation key" />
-      @if (form.controls['translationKey'].invalid && form.controls['translationKey'].touched) {
-        <mat-error>Translation key is required.</mat-error>
-      }
-    </mat-form-field>
+<div class="dialog-shell">
+  <div class="dialog-header">
+    <h2 mat-dialog-title>Add Translation</h2>
+    <p class="dialog-subtitle">Add a new translation key, source text, and assign it to a project.</p>
+  </div>
 
-    <mat-form-field appearance="outline">
-      <mat-label>Original Text</mat-label>
-      <input matInput formControlName="originalText" placeholder="Enter original text" />
-      @if (form.controls['originalText'].invalid && form.controls['originalText'].touched) {
-        <mat-error>Original text is required.</mat-error>
-      }
-    </mat-form-field>
-
-    <mat-form-field appearance="outline">
-      <mat-label>Project</mat-label>
-      <mat-select formControlName="projectId" placeholder="Select a project">
-        @if (loadingProjects()) {
-          <mat-option disabled>Loading projects...</mat-option>
-        } @else {
-          @for (project of projects(); track project.id) {
-            <mat-option [value]="project.id">{{ project.name }}</mat-option>
-          }
+  <mat-dialog-content>
+    <form [formGroup]="form" class="dialog-form">
+      <mat-form-field appearance="outline">
+        <mat-label>Translation Key</mat-label>
+        <input matInput formControlName="translationKey" placeholder="Enter translation key" />
+        @if (form.controls['translationKey'].invalid && form.controls['translationKey'].touched) {
+          <mat-error>Translation key is required.</mat-error>
         }
-      </mat-select>
-      @if (projectLoadError()) {
-        <mat-error>{{ projectLoadError() }}</mat-error>
-      }
-      @if (form.controls['projectId'].invalid && form.controls['projectId'].touched) {
-        <mat-error>Project selection is required.</mat-error>
-      }
-    </mat-form-field>
-  </form>
-</mat-dialog-content>
-<mat-dialog-actions align="end">
-  <button mat-button (click)="cancel()">Cancel</button>
-  <button mat-raised-button color="primary" (click)="submit()" [disabled]="form.invalid || loadingProjects()">
-    Submit
-  </button>
-</mat-dialog-actions>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Original Text</mat-label>
+        <input matInput formControlName="originalText" placeholder="Enter original text" />
+        @if (form.controls['originalText'].invalid && form.controls['originalText'].touched) {
+          <mat-error>Original text is required.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Project</mat-label>
+        <mat-select formControlName="projectId" placeholder="Select a project">
+          @if (loadingProjects()) {
+            <mat-option disabled>Loading projects...</mat-option>
+          } @else {
+            @for (project of projects(); track project.id) {
+              <mat-option [value]="project.id">{{ project.name }}</mat-option>
+            }
+          }
+        </mat-select>
+        @if (projectLoadError()) {
+          <mat-error>{{ projectLoadError() }}</mat-error>
+        }
+        @if (form.controls['projectId'].invalid && form.controls['projectId'].touched) {
+          <mat-error>Project selection is required.</mat-error>
+        }
+      </mat-form-field>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button class="cancel-btn" (click)="cancel()">Cancel</button>
+    <button mat-raised-button class="submit-btn" (click)="submit()" [disabled]="form.invalid || loadingProjects()">
+      Submit
+    </button>
+  </mat-dialog-actions>
+</div>

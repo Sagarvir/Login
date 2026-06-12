@@ -24,8 +24,8 @@
     .stat-card {
       background: #ffffff;
       border-radius: 12px;
-      border: 1px solid #dfe5ee;
-      box-shadow: 0 6px 14px rgba(15, 41, 79, 0.08);
+      border: 1px solid #ff6b35;
+      box-shadow: 0 6px 14px rgba(15, 41, 79, 0.08), inset 0 0 0 1px rgba(255, 107, 53, 0.12);
 
       mat-card-content {
         padding: 22px 24px;
@@ -33,7 +33,7 @@
         .stat-label {
           margin: 0;
           font-size: 13px;
-          color: #6b7a90;
+          color: #0f4c81;
           font-weight: 600;
           letter-spacing: 0.3px;
         }

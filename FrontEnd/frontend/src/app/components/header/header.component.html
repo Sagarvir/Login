@@ -32,7 +32,10 @@
         <span class="file-type-title">File Type</span>
 
         <mat-form-field appearance="outline" class="file-type-dropdown">
-          <mat-select [(value)]="selectedFileType">
+          <mat-select [(value)]="selectedFileType" panelClass="file-type-panel">
+            <mat-select-trigger>
+              {{ selectedFileType === 'both' ? 'Both Files' : selectedFileType === 'json' ? 'JSON Only' : 'XLIFF Only' }}
+            </mat-select-trigger>
             <mat-option value="both">Both Files</mat-option>
             <mat-option value="json">JSON Only</mat-option>
             <mat-option value="xlf">XLIFF Only</mat-option>

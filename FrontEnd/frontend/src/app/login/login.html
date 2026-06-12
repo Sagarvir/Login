@@ -1,27 +1,35 @@
-<form [formGroup]="form" (ngSubmit)="onLogin()">
-  @if (error()) {
-    <div class="error-message">{{ error() }}</div>
-  }
+<div class="auth-page login-page">
+  <div class="auth-shell">
+    <div class="logo-container">
+      <img src="images/eurofins-logo.png" alt="Eurofins Logo" class="eurofins-logo">
+    </div>
 
-  <input
-    type="text"
-    formControlName="employeeId"
-    placeholder="Employee ID"
-    required
-    [disabled]="isLoading()">
+    <form class="auth-card" [formGroup]="form" (ngSubmit)="onLogin()">
+      @if (error()) {
+        <div class="error-message">{{ error() }}</div>
+      }
 
-  <input
-    type="password"
-    formControlName="password"
-    placeholder="Password"
-    required
-    [disabled]="isLoading()">
+      <input
+        type="text"
+        formControlName="employeeId"
+        placeholder="Employee ID"
+        required
+        [disabled]="isLoading()">
 
-  <div class="signup-link">
-    <p>Don't have an account? <button type="button" routerLink="/signup" class="signup-button">Sign Up</button></p>
+      <input
+        type="password"
+        formControlName="password"
+        placeholder="Password"
+        required
+        [disabled]="isLoading()">
+
+      <div class="signup-link">
+        <p>Don't have an account? <button type="button" routerLink="/signup" class="signup-button">Sign Up</button></p>
+      </div>
+
+      <button type="submit" [disabled]="form.invalid || isLoading()">
+        {{ isLoading() ? 'Logging in...' : 'Login' }}
+      </button>
+    </form>
   </div>
-
-  <button type="submit" [disabled]="form.invalid || isLoading()">
-    {{ isLoading() ? 'Logging in...' : 'Login' }}
-  </button>
-</form>
+</div>

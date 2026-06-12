@@ -11,3 +11,37 @@ body {
 * {
   box-sizing: border-box;
 }
+
+.eurofins-swal-popup {
+  border-radius: 22px !important;
+  border: 1px solid rgba(30, 58, 138, 0.12) !important;
+  box-shadow: 0 24px 60px rgba(15, 41, 79, 0.18) !important;
+  padding: 1.5rem 1.75rem !important;
+}
+
+.eurofins-swal-title {
+  color: var(--eurofins-blue) !important;
+  font-size: 1.35rem !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em;
+}
+
+.eurofins-swal-content {
+  color: var(--eurofins-text) !important;
+  font-size: 0.98rem !important;
+  line-height: 1.5;
+}
+
+.eurofins-swal-confirm {
+  border: 0 !important;
+  border-radius: 999px !important;
+  padding: 0.75rem 1.5rem !important;
+  background: linear-gradient(180deg, var(--eurofins-orange) 0%, var(--eurofins-orange-deep) 100%) !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  box-shadow: 0 10px 20px rgba(230, 119, 19, 0.24) !important;
+}
+
+.eurofins-swal-confirm:focus {
+  box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.18) !important;
+}

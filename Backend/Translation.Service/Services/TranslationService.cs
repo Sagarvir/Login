@@ -678,6 +678,11 @@ namespace Translation.Service.Services
                 }
             }
 
+            if (Directory.Exists(publishFolder))
+            {
+                Directory.Delete(publishFolder, true);
+            }
+
             return new PublishDownloadResponse
             {
                 Success = true,
@@ -731,6 +736,11 @@ namespace Translation.Service.Services
                         Path.GetFileName(file)
                     );
                 }
+            }
+
+            if (Directory.Exists(publishFolder))
+            {
+                Directory.Delete(publishFolder, true);
             }
 
             return new PublishDownloadResponse

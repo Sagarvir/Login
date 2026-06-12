@@ -2,11 +2,11 @@ nav.admin-nav {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: #1e3a8a;
+  border: 1px solid #1e3a8a;
   border-radius: 14px;
   padding: 12px 16px;
-  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.14);
   margin: 16px 0;
 }
 
@@ -43,7 +43,7 @@ nav.admin-nav {
   margin: 0;
   font-size: 20px;
   font-weight: 700;
-  color: #0f172a;
+  color: #ffffff;
 }
 
 .user-info {
@@ -51,27 +51,28 @@ nav.admin-nav {
   align-items: center;
   gap: 6px;
   font-size: 13px;
-  color: #475569;
+  color: rgba(255, 255, 255, 0.92);
 }
 
 .role-icon {
   font-size: 14px;
   width: 14px;
   height: 14px;
-  color: #1f5e97;
+  color: #ffffff;
 }
 
 .role {
   font-weight: 600;
-  color: #425466;
+  color: #ffffff;
 }
+
 .nav-button {
   min-width: 120px;
   padding: 10px 18px;
   border-radius: 999px;
-  border: 1px solid transparent;
-  color: #1e293b;
-  background: #f8fafc;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.12);
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
@@ -79,19 +80,20 @@ nav.admin-nav {
 }
 
 .nav-button:hover {
-  background: #e2e8f0;
+  background: rgba(255, 255, 255, 0.2);
   transform: translateY(-1px);
 }
 
 .nav-button.active {
-  background: #1e3a8a;
+  background: rgba(255, 255, 255, 0.22);
   color: #ffffff;
-  box-shadow: 0 8px 20px rgba(30, 58, 138, 0.16);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.16);
 }
 
 .logout-button {
   background: #ff6b35;
   color: #ffffff;
+  border-color: #ff6b35;
 }
 
 .logout-button:hover {
@@ -101,5 +103,5 @@ nav.admin-nav {
 hr {
   margin: 0;
   border: none;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
 }
