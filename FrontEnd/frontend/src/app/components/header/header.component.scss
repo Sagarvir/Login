@@ -26,6 +26,21 @@
     flex-wrap: nowrap;
   }
 
+  .user-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: #475569;
+    margin-bottom: 8px;
+  }
+
+  .user-name {
+    font-weight: 700;
+    color: #0f172a;
+  }
+
   .left-group {
     flex: 1 1 0;
     min-width: 240px;

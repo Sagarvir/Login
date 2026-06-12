@@ -38,7 +38,8 @@ export class LoginComponent {
 
     this.authService.login({ employeeId, password }).subscribe({
       next: () => {
-        this.isLoading.set(false);
+        this.authService.loadUserProfile(true).subscribe((profile) => {
+          this.isLoading.set(false);
 
         Swal.fire({
           icon: 'success',
@@ -63,11 +64,22 @@ export class LoginComponent {
           }
         });
 
-        const role = this.authService.getUserRole();
+          const userName =
+            profile?.userName ||
+            this.authService.getUsername() ||
+            `Employee ${employeeId}`;
 
-        
+
+          Swal.fire({
+            icon: 'success',
+            title: 'Login Successful',
+            text: `Welcome back, ${userName}!`,
+            timer: 1500,
+            showConfirmButton: false,
+          });
+
           this.router.navigate(['/dashboard']);
-        
+        });
       },
       error: (err) => {
         const errorMessage =

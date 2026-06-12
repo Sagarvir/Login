@@ -9,7 +9,11 @@
       <h1>Translation Management</h1>
 
       <div class="user-info">
-        <span>User: {{ getUserId() }} • Language: {{ getPreferredLanguage() }}</span>
+        <span>{{ getUserName() }}</span>
+        <span class="separator">•</span>
+        <span>Emp ID: {{ getEmployeeId() }}</span>
+        <span class="separator">•</span>
+        <span>Language: {{ getPreferredLanguage() }}</span>
         <span class="separator">•</span>
         <mat-icon class="role-icon">verified_user</mat-icon>
         <span class="role">{{ getRole() }}</span>
