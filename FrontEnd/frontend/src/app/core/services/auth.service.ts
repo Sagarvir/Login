@@ -167,34 +167,33 @@ export class AuthService {
   // ================= ROLE METHODS =================
 
   // Normalize backend role → frontend friendly
-  private normalizeRole(role: string | null): string | null {
-    if (!role) return null;
+  private normalizeRole(role: any): string | null {
+  if (!role) return null;
 
-    const normalized = role.trim().toLowerCase();
-    switch (normalized) {
-      case 'admin':
-        return 'admin';
-      case 'creator':
-        return 'creator';
-      case 'translator':
-        return 'translator';
-      case 'viewer':
-        return 'viewer';
-      default:
-        return normalized;
-    }
+  if (Array.isArray(role)) {
+    role = role[0]; // take first role
   }
+
+  if (typeof role !== 'string') {
+    return null;
+  }
+
+  return role.trim().toLowerCase();
+}
 
   getUserRole(): string | null {
-    const payload = this.decodeToken();
-    if (!payload) return null;
+  const payload = this.decodeToken();
+  if (!payload) return null;
 
-    const rawRole =
-      payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ||
-      null;
+  const rawRole =
+    payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ||
+    null;
 
-    return this.normalizeRole(rawRole);
-  }
+  console.log('RAW ROLE:', rawRole);
+  console.log('TYPE:', typeof rawRole);
+
+  return this.normalizeRole(rawRole as any);
+}
   getPreferredLanguage(): string {
     const profile = this.userProfileSubject.value;
     if (profile?.preferredLanguage) {

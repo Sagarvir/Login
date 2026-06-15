@@ -45,3 +45,23 @@ body {
 .eurofins-swal-confirm:focus {
   box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.18) !important;
 }
+
+.login-success-swal-popup {
+  border-radius: 24px !important;
+  border: 1px solid rgba(15, 76, 129, 0.14) !important;
+  box-shadow: 0 24px 60px rgba(15, 41, 79, 0.18) !important;
+  padding: 1.75rem 2rem !important;
+}
+
+.login-success-swal-title {
+  color: #0f4c81 !important;
+  font-size: 1.55rem !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.02em;
+}
+
+.login-success-swal-content {
+  color: #0f4c81 !important;
+  font-size: 1rem !important;
+  line-height: 1.5;
+}

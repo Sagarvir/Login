@@ -195,7 +195,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 }
 
   publishCurrentLanguage(): void {
-  if (!this.isCreator()) {
+  if (!this.isCreator() && !this.isAdmin())  {
     this.snackBar.open('Access denied', 'Close', { duration: 3000 });
     return;
   }

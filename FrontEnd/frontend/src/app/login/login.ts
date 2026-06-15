@@ -41,29 +41,6 @@ export class LoginComponent {
         this.authService.loadUserProfile(true).subscribe((profile) => {
           this.isLoading.set(false);
 
-        Swal.fire({
-          icon: 'success',
-          title: 'Login Successful',
-          text: 'Welcome back!',
-          background: '#ffffff',
-          color: '#173a5c',
-          iconColor: '#ff6b35',
-          showClass: {
-            popup: 'swal2-show'
-          },
-          hideClass: {
-            popup: 'swal2-hide'
-          },
-          timer: 1500,
-          showConfirmButton: false,
-          timerProgressBar: true,
-          customClass: {
-            popup: 'eurofins-swal-popup',
-            title: 'eurofins-swal-title',
-            htmlContainer: 'eurofins-swal-content'
-          }
-        });
-
           const userName =
             profile?.userName ||
             this.authService.getUsername() ||
@@ -74,8 +51,23 @@ export class LoginComponent {
             icon: 'success',
             title: 'Login Successful',
             text: `Welcome back, ${userName}!`,
+            background: '#ffffff',
+            color: '#0f4c81',
+            iconColor: '#f28c28',
+            showClass: {
+              popup: 'swal2-show'
+            },
+            hideClass: {
+              popup: 'swal2-hide'
+            },
             timer: 1500,
             showConfirmButton: false,
+            timerProgressBar: true,
+            customClass: {
+              popup: 'login-success-swal-popup',
+              title: 'login-success-swal-title',
+              htmlContainer: 'login-success-swal-content'
+            }
           });
 
           this.router.navigate(['/dashboard']);

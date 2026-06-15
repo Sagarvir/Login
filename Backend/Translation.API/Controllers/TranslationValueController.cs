@@ -170,7 +170,7 @@ namespace Translation.API.Controllers
         }
 
         [HttpPost("publish/{languageCode}")]
-        [Authorize(Roles = "Admin,Creator")]
+        [Authorize(Roles = "Admin,Creator,admin")]
         public async Task<IActionResult> PublishLanguage(string languageCode)
         {
             var result =
@@ -206,7 +206,7 @@ namespace Translation.API.Controllers
         }
 
         [HttpPost("publish/{languageCode}/download")]
-        [Authorize(Roles = "Admin,Creator")]
+        [Authorize(Roles = "Admin,Creator,admin")]
         public async Task<IActionResult> PublishLanguageDownload(
     string languageCode,
     PublishDownloadRequest request)

@@ -429,7 +429,7 @@ canEditTags(): boolean {
           );
         }
         return {
-          key_name:keyName,
+          keyName:keyName,
           value: item.translation,
           languageCode: this.selectedLanguage.toLowerCase(),
         };

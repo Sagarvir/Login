@@ -42,7 +42,8 @@ namespace Translation.Service.Helpers
             new Claim(ClaimTypes.Name, user.EmployeeId.ToLower()),
             new Claim(ClaimTypes.Role, user.Role?.Name ?? "Viewer"),
             new Claim("empId", user.EmployeeId.ToLower()),
-            new Claim("preferred_language", user.PreferredLanguage?.Code?.ToLower() ?? "en")
+            new Claim("preferred_language", user.PreferredLanguage?.Code?.ToLower() ?? "en"),
+            new Claim(ClaimTypes.Role, user.Role.Name) // should be "Admin", not "admin"
 
         }; //is an array of type claims , and these are the elements inside it ;
 
