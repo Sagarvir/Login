@@ -1,6 +1,8 @@
 <Solution>
   <Folder Name="/Solution Items/" />
-  <Project Path="Translation.API/Translation.API.csproj" Id="f285546c-a8f9-4a5a-b1df-ee1669bc509a" />
+  <Project Path="Translation.API/Translation.API.csproj" Id="f285546c-a8f9-4a5a-b1df-ee1669bc509a">
+    <BuildDependency Project="Translation.Models/Translation.Models.csproj" />
+  </Project>
   <Project Path="Translation.API/Translation.API.Tests/Translation.API.Tests.csproj" Id="a5035e16-5c9c-4373-85fa-e1bcf2090039">
     <Build Solution="Debug|*" Project="false" />
   </Project>
