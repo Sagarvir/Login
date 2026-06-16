@@ -28,6 +28,7 @@ builder.Services.AddScoped<ILanguageRepository, Translation.DAO.Repositories.Lan
 builder.Services.AddScoped<IProjectService, Translation.Service.Services.ProjectService>();
 builder.Services.AddScoped<IProjectRepository, Translation.DAO.Repositories.ProjectRepository>();
 builder.Services.AddScoped<IUserService, Translation.Service.Services.UserService>();
+builder.Services.AddScoped<ITranslationImportService, TranslationImportService>();
 var jwtKey = builder.Configuration["Jwt:Key"]
     ?? throw new InvalidOperationException("Jwt:Key is missing in configuration.");
 
@@ -125,6 +126,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
 
 
 // Redirect HTTP to HTTPS when configured.
