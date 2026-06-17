@@ -7,7 +7,7 @@ namespace Translation.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Admin,Creator")]
+    [Authorize(Roles = "Creator")]
     public class TranslationImportController : ControllerBase
     {
         private readonly ITranslationImportService _importService;
