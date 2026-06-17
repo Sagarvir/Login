@@ -8,6 +8,6 @@ namespace Translation.Service.Interfaces
 {
     public interface ITranslationImportService
     {
-        Task<ImportKeysResponse> ImportKeysAsync(IFormFile file, string empId);
+        Task<ImportKeysResponse> ImportKeysAsync(IFormFile file, string empId, int projectId);
     }
 }

@@ -10,6 +10,16 @@
         />
       </mat-form-field>
 
+       <div
+  class="import-box"
+  *ngIf="isCreator() || isAdmin()"
+  (click)="openImportDialog()">
+
+  <mat-icon>upload_file</mat-icon>
+  <span>Import Keys</span>
+
+</div>
+
       <mat-form-field appearance="outline" class="language-select" *ngIf="isCreator()||isAdmin()||isViewer()">
         <mat-label>Language</mat-label>
         <mat-select [(ngModel)]="selectedLanguage" (selectionChange)="onLanguageChange()">

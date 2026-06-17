@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using Translation.Contracts.DTO.Import;
 using Translation.Service.Interfaces;
+using System.Xml.Linq;
+using Humanizer.Localisation.DateToOrdinalWords;
 
 namespace Translation.Service.Services
 {
@@ -18,7 +20,7 @@ namespace Translation.Service.Services
             _context = context;
         }
 
-        public async Task<ImportKeysResponse> ImportKeysAsync(IFormFile file, string empId)
+        public async Task<ImportKeysResponse> ImportKeysAsync(IFormFile file, string empId, int projectId)
         {
             var response = new ImportKeysResponse();
 
@@ -32,14 +34,24 @@ namespace Translation.Service.Services
                 return response;
             }
 
-            var extension = Path.GetExtension(file.FileName).ToLower();
-
-            if (extension != ".json")
+            if (projectId <= 0)
             {
                 response.Errors.Add(new ImportKeyErrorDto
                 {
                     RowNumber = 0,
-                    Message = "Only JSON files are supported for now."
+                    Message = "Valid ProjectId is required."
+                });
+                return response;
+            }
+
+            var extension = Path.GetExtension(file.FileName).ToLower();
+
+            if (extension != ".json" && extension != ".xlf" && extension != ".xliff")
+            {
+                response.Errors.Add(new ImportKeyErrorDto
+                {
+                    RowNumber = 0,
+                    Message = "Only JSON, XLF, and XLIFF files are supported."
                 });
                 return response;
             }
@@ -48,21 +60,30 @@ namespace Translation.Service.Services
 
             try
             {
-                using var stream = file.OpenReadStream();
+                if (extension == ".json")
+                {
+                    using var stream = file.OpenReadStream();
 
-                items = await JsonSerializer.DeserializeAsync<List<ImportKeyDto>>(
-                    stream,
-                    new JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true
-                    });
+                    items = await JsonSerializer.DeserializeAsync<List<ImportKeyDto>>(
+                        stream,
+                        new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true
+                        });
+                }
+                else
+                {
+                    items = await ParseXliffFileAsync(file, projectId);
+                }
             }
             catch
             {
                 response.Errors.Add(new ImportKeyErrorDto
                 {
                     RowNumber = 0,
-                    Message = "Invalid JSON file format."
+                    Message = extension == ".json"
+                        ? "Invalid JSON file format."
+                        : "Invalid XLIFF file format."
                 });
                 return response;
             }
@@ -72,7 +93,7 @@ namespace Translation.Service.Services
                 response.Errors.Add(new ImportKeyErrorDto
                 {
                     RowNumber = 0,
-                    Message = "JSON file does not contain any keys."
+                    Message = "File does not contain any importable keys."
                 });
                 return response;
             }
@@ -100,13 +121,6 @@ namespace Translation.Service.Services
                     continue;
                 }
 
-                if (row.ProjectId == null || row.ProjectId <= 0)
-                {
-                    response.Warnings.Add($"Row {rowNumber}: Valid ProjectId is required. Skipped.");
-                    response.SkippedCount++;
-                    continue;
-                }
-
                 normalizedItems.Add(new ImportKeyDto
                 {
                     ExternalKeyId = row.ExternalKeyId,
@@ -116,7 +130,7 @@ namespace Translation.Service.Services
                     KeyName = row.KeyName.Trim(),
 
                     OriginalText = row.OriginalText.Trim(),
-                    ProjectId = row.ProjectId.Value
+                    ProjectId = projectId
                 });
             }
 
@@ -208,5 +222,41 @@ namespace Translation.Service.Services
 
             return response;
         }
+
+        private async Task<List<ImportKeyDto>> ParseXliffFileAsync(IFormFile file, int projectId)
+        {
+            using var stream = file.OpenReadStream();
+
+            var document = await XDocument.LoadAsync(
+                stream,
+                LoadOptions.None,
+                CancellationToken.None);
+
+            var transUnits = document
+                .Descendants()
+                .Where(x => x.Name.LocalName == "trans-unit")
+                .ToList();
+
+            var items = new List<ImportKeyDto>();
+
+            foreach (var unit in transUnits)
+            {
+                var keyName = unit.Attribute("id")?.Value;
+
+                var source = unit.Elements()
+                    .FirstOrDefault(x => x.Name.LocalName == "source")
+                    ?.Value;
+
+                items.Add(new ImportKeyDto
+                {
+                    KeyName = keyName,
+                    OriginalText = source,
+                    ProjectId = projectId
+                });
+            }
+
+            return items;
+        }
+
     }
 }

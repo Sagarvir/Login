@@ -14,15 +14,16 @@
   gap: 16px;
   margin-bottom: 20px;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 
   .search-field {
-    flex: 1;
-    min-width: 200px;
+    flex: 1 1 520px;
+    min-width: 280px;
+    margin: 0;
 
     ::ng-deep {
       .mdc-text-field {
-        width: 80%;
+        width: 100%;
         border-radius: 14px;
         background-color: #fbfdff;
       }
@@ -34,7 +35,9 @@
   }
 
   .language-select {
-    min-width: 140px;
+    flex: 0 0 220px;
+    min-width: 220px;
+    margin: 0;
 
     ::ng-deep {
       .mat-mdc-text-field-wrapper {
@@ -67,6 +70,38 @@
     }
   }
 
+ .import-box {
+  height: 56px;
+  min-width: 180px;
+  align-self: flex-start;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  border: 1px solid rgba(15, 76, 129, 0.32);
+  border-radius: 14px;
+
+  background: #fbfdff;
+
+  color: #0f4c81;
+  font-weight: 500;
+
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.import-box:hover {
+  border-color: #0f4c81;
+  background: #f0f6fc;
+}
+
+.import-box mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+}
   .add-btn {
     display: flex;
     gap: 8px;

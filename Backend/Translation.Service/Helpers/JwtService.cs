@@ -36,15 +36,16 @@ namespace Translation.Service.Helpers
         // Generates a JWT for the given user, including claims for ID, role, and preferred language.
         public string GenerateToken(User user)
         {
-            var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Name, user.EmployeeId.ToLower()),
-            new Claim(ClaimTypes.Role, user.Role?.Name ?? "Viewer"),
-            new Claim("empId", user.EmployeeId.ToLower()),
-            new Claim("preferred_language", user.PreferredLanguage?.Code?.ToLower() ?? "en"),
-            new Claim(ClaimTypes.Role, user.Role.Name) // should be "Admin", not "admin"
+            var roleName = user.Role?.Name ?? "Viewer";
 
+            var claims = new List<Claim>
+{
+    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+    new Claim(ClaimTypes.Name, user.EmployeeId.ToLower()),
+    new Claim(ClaimTypes.Role, roleName),
+    new Claim("empId", user.EmployeeId.ToLower()),
+    new Claim("preferred_language", user.PreferredLanguage?.Code?.ToLower() ?? "en"),
+    new Claim("role", roleName)
         }; //is an array of type claims , and these are the elements inside it ;
 
             var key = new SymmetricSecurityKey(_jwtKey);

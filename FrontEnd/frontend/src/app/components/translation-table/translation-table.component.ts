@@ -29,6 +29,7 @@ import { DeleteConfirmDialogComponent } from '../delete-confirm-dialog/delete-co
 import { AddTranslationDialogComponent, AddTranslationDialogResult } from '../add-translation-dialog/add-translation-dialog.component';
 import { AuthService } from '../../core/services/auth.service';
 import { isDataSource } from '@angular/cdk/collections';
+import { ImportKeysDialogComponent } from '../import-keys-dialog/import-keys-dialog.component';
 
 @Component({
   selector: 'app-translation-table',
@@ -48,6 +49,7 @@ import { isDataSource } from '@angular/cdk/collections';
     MatDialogModule,
     MatCardModule,
     MatSelectModule,
+ImportKeysDialogComponent,
   ],
   templateUrl: './translation-table.component.html',
   styleUrl: './translation-table.component.scss',
@@ -80,7 +82,7 @@ export class TranslationTableComponent implements OnInit, AfterViewInit, OnDestr
     private projectService: ProjectService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
-     private authService: AuthService
+     private authService: AuthService,
   ) {}
   isCreator(): boolean {
   return this.authService.isCreator(); // adjust based on your logic
@@ -334,6 +336,17 @@ canEditTags(): boolean {
   });
 }
   
+openImportDialog(): void {
+  const dialogRef = this.dialog.open(ImportKeysDialogComponent, {
+    width: '600px',
+  });
+
+  dialogRef.afterClosed().subscribe((result) => {
+    if (result === true) {
+      this.loadAllData(this.selectedLanguage);
+    }
+  });
+}
 
   addNewTranslation(): void {
     const dialogRef = this.dialog.open(AddTranslationDialogComponent, {

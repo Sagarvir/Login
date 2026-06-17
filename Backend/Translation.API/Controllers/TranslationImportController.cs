@@ -18,7 +18,7 @@ namespace Translation.API.Controllers
         }
 
         [HttpPost("keys")]
-        public async Task<IActionResult> ImportKeys(IFormFile file)
+        public async Task<IActionResult> ImportKeys(IFormFile file, [FromForm] int projectId)
         {
             var empId = User.FindFirst("EmployeeId")?.Value
                         ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -26,7 +26,7 @@ namespace Translation.API.Controllers
             if (string.IsNullOrWhiteSpace(empId))
                 return Unauthorized("Invalid token.");
 
-            var result = await _importService.ImportKeysAsync(file, empId);
+            var result = await _importService.ImportKeysAsync(file, empId, projectId);
 
             if (result.Errors.Any())
                 return BadRequest(result);

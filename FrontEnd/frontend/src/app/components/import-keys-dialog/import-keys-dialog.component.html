@@ -1,0 +1,48 @@
+<h2 mat-dialog-title>Import Translation Keys</h2>
+
+<mat-dialog-content class="dialog-content">
+  <form [formGroup]="form">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Project</mat-label>
+
+      <mat-select formControlName="projectId">
+        <mat-option *ngFor="let project of projects()" [value]="project.id">
+          {{ project.name }}
+        </mat-option>
+      </mat-select>
+
+      <mat-error *ngIf="form.controls['projectId'].hasError('required')">
+        Project is required
+      </mat-error>
+    </mat-form-field>
+  </form>
+
+  <p *ngIf="projectLoadError()" class="error">
+    {{ projectLoadError() }}
+  </p>
+
+  <div class="file-section">
+    <label class="file-label">Upload JSON / XLF / XLIFF file</label>
+
+    <input
+      type="file"
+      accept=".json,.xlf,.xliff"
+      (change)="onFileSelected($event)" />
+
+    <p *ngIf="selectedFile" class="selected-file">
+      Selected file: {{ selectedFile.name }}
+    </p>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancel</button>
+
+  <button
+    mat-raised-button
+    color="primary"
+    [disabled]="importing()"
+    (click)="importKeys()">
+    {{ importing() ? 'Importing...' : 'Import' }}
+  </button>
+</mat-dialog-actions>
