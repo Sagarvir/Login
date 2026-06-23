@@ -257,6 +257,247 @@ namespace Translation.Service.Services
 
             return items;
         }
+        public async Task<ImportTranslationsResponse> ImportTranslationsAsync(IFormFile file,string empId,string preferredLanguageCode)
+        {
+            var response = new ImportTranslationsResponse();
+
+            if (file == null || file.Length == 0)
+            {
+                response.Errors.Add(new ImportKeyErrorDto
+                {
+                    RowNumber = 0,
+                    Message = "File is required."
+                });
+                return response;
+            }
+
+            var extension = Path.GetExtension(file.FileName).ToLower();
+
+            if (extension != ".json" && extension != ".xlf" && extension != ".xliff")
+            {
+                response.Errors.Add(new ImportKeyErrorDto
+                {
+                    RowNumber = 0,
+                    Message = "Only JSON, XLF, and XLIFF files are supported."
+                });
+                return response;
+            }
+
+            List<ImportTranslationValueDto>? items;
+
+            try
+            {
+                if (extension == ".json")
+                {
+                    items = await ParseTranslationJsonFileAsync(file);
+                }
+                else
+                {
+                    items = await ParseTranslationXliffFileAsync(file);
+                }
+            }
+            catch
+            {
+                response.Errors.Add(new ImportKeyErrorDto
+                {
+                    RowNumber = 0,
+                    Message = extension == ".json"
+                        ? "Invalid JSON file format."
+                        : "Invalid XLIFF file format."
+                });
+                return response;
+            }
+
+            if (items == null || items.Count == 0)
+            {
+                response.Errors.Add(new ImportKeyErrorDto
+                {
+                    RowNumber = 0,
+                    Message = "File does not contain any importable translations."
+                });
+                return response;
+            }
+
+            response.TotalRows = items.Count;
+
+            var fileLanguage = items
+                .Select(x => x.FileLanguageCode)
+                .FirstOrDefault(x => !string.IsNullOrWhiteSpace(x));
+
+            if (!string.IsNullOrWhiteSpace(fileLanguage) &&
+                fileLanguage.ToLower() != preferredLanguageCode.ToLower())
+            {
+                response.Errors.Add(new ImportKeyErrorDto
+                {
+                    RowNumber = 0,
+                    Message = $"File language '{fileLanguage}' does not match your assigned language '{preferredLanguageCode}'."
+                });
+                return response;
+            }
+
+            var normalizedItems = new List<ImportTranslationValueDto>();
+
+            for (int i = 0; i < items.Count; i++)
+            {
+                var row = items[i];
+                var rowNumber = i + 1;
+
+                if (string.IsNullOrWhiteSpace(row.KeyName))
+                {
+                    response.Warnings.Add($"Row {rowNumber}: KeyName is empty. Skipped.");
+                    response.SkippedCount++;
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(row.Translation))
+                {
+                    response.Warnings.Add($"Row {rowNumber}: Translation is empty. Skipped.");
+                    response.SkippedCount++;
+                    continue;
+                }
+
+                normalizedItems.Add(new ImportTranslationValueDto
+                {
+                    KeyName = row.KeyName.Trim(),
+                    OriginalText = row.OriginalText?.Trim(),
+                    Translation = row.Translation.Trim(),
+                    FileLanguageCode = row.FileLanguageCode
+                });
+            }
+
+            if (!normalizedItems.Any())
+            {
+                response.Success = false;
+                response.Errors.Add(new ImportKeyErrorDto
+                {
+                    RowNumber = 0,
+                    Message = "No valid translations found to import."
+                });
+                return response;
+            }
+
+            normalizedItems = normalizedItems
+                .GroupBy(x => x.KeyName, StringComparer.OrdinalIgnoreCase)
+                .Select(g => g.First())
+                .ToList();
+
+            var keyNames = normalizedItems
+                .Select(x => x.KeyName!)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            var existingKeys = await _context.TranslationKeys
+                .Where(k => keyNames.Contains(k.KeyName))
+                .ToListAsync();
+
+            var keyMap = existingKeys
+                .ToDictionary(k => k.KeyName, k => k.Id, StringComparer.OrdinalIgnoreCase);
+
+            foreach (var item in normalizedItems)
+            {
+                if (!keyMap.TryGetValue(item.KeyName!, out var keyId))
+                {
+                    response.SkippedCount++;
+                    response.Warnings.Add($"Skipped key not found in DB: {item.KeyName}");
+                    continue;
+                }
+
+                var existingValue = await _context.TranslationValues
+                    .FirstOrDefaultAsync(v =>
+                        v.TranslationKeyId == keyId &&
+                        v.LanguageCode.ToLower() == preferredLanguageCode.ToLower());
+
+                if (existingValue == null)
+                {
+                    var newValue = new TranslationValue
+                    {
+                        TranslationKeyId = keyId,
+                        LanguageCode = preferredLanguageCode.ToLower(),
+                        Value = item.Translation!,
+                        UpdatedByEmpId = empId,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+
+                    await _context.TranslationValues.AddAsync(newValue);
+                    response.InsertedCount++;
+                }
+                else
+                {
+                    existingValue.Value = item.Translation!;
+                    existingValue.UpdatedByEmpId = empId;
+                    existingValue.UpdatedAt = DateTime.UtcNow;
+
+                    response.UpdatedCount++;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            response.Success =
+                response.InsertedCount > 0 ||
+                response.UpdatedCount > 0 ||
+                response.SkippedCount > 0;
+
+            return response;
+        }
+        private async Task<List<ImportTranslationValueDto>> ParseTranslationJsonFileAsync(IFormFile file)
+        {
+            using var stream = file.OpenReadStream();
+
+            var items = await JsonSerializer.DeserializeAsync<List<ImportTranslationValueDto>>(
+                stream,
+                new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+            return items ?? new List<ImportTranslationValueDto>();
+        }
+        private async Task<List<ImportTranslationValueDto>> ParseTranslationXliffFileAsync(IFormFile file)
+        {
+            using var stream = file.OpenReadStream();
+
+            var document = await XDocument.LoadAsync(
+                stream,
+                LoadOptions.None,
+                CancellationToken.None);
+
+            var fileNode = document
+                .Descendants()
+                .FirstOrDefault(x => x.Name.LocalName == "file");
+
+            var targetLanguage = fileNode?.Attribute("target-language")?.Value;
+
+            var transUnits = document
+                .Descendants()
+                .Where(x => x.Name.LocalName == "trans-unit")
+                .ToList();
+
+            var items = new List<ImportTranslationValueDto>();
+
+            foreach (var unit in transUnits)
+            {
+                var keyName = unit.Attribute("id")?.Value;
+
+                var source = unit.Elements()
+                    .FirstOrDefault(x => x.Name.LocalName == "source")
+                    ?.Value;
+
+                var target = unit.Elements()
+                    .FirstOrDefault(x => x.Name.LocalName == "target")
+                    ?.Value;
+
+                items.Add(new ImportTranslationValueDto
+                {
+                    KeyName = keyName,
+                    OriginalText = source,
+                    Translation = target,
+                    FileLanguageCode = targetLanguage
+                });
+            }
+
+            return items;
+        }
 
     }
 }

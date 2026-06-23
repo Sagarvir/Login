@@ -17,8 +17,9 @@ namespace Translation.API.Controllers
         }
 
         // GET all languages
+        [AllowAnonymous]
         [HttpGet]
-        [Authorize(Roles = "Admin,Creator,Translator,Viewer")]
+        
         public async Task<IActionResult> GetLanguages()
         {
             var languages = await _languageService.GetLanguagesAsync();

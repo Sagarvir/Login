@@ -30,7 +30,7 @@
 
       <select formControlName="preferredLanguageId" [disabled]="isLoading()" required>
         <option value="" disabled selected>Select Language</option>
-        <option *ngFor="let lang of languages" [value]="lang.id">
+        <option *ngFor="let lang of languages()" [value]="lang.id">
           {{ lang.name }}
         </option>
       </select>

@@ -1,10 +1,10 @@
-import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal , OnInit} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router'; // imported route for navigation
 import Swal from 'sweetalert2';
-
+import { LanguageService } from '../services/language.service';
 @Component({
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
@@ -13,7 +13,7 @@ import Swal from 'sweetalert2';
   styleUrls: ['./signup.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SignupComponent {
+export class SignupComponent implements OnInit {
   private http = inject(HttpClient);
   private fb = inject(FormBuilder);
   private router = inject(Router); // added route injection
@@ -21,15 +21,22 @@ export class SignupComponent {
   form: FormGroup;
   isLoading = signal(false);
   error = signal<string | null>(null);
+  
+  private languageService = inject(LanguageService);
 
-  // Hardcoded 5 languages with their IDs
-  languages = [
-    { id: 1, name: 'English' },
-    { id: 2, name: 'French' },
-    { id: 3, name: 'Spanish' },
-    { id: 4, name: 'German' },
-    { id: 5, name: 'Japanese' }
-  ];
+languages = signal<any[]>([]);
+  ngOnInit(): void {
+  this.languageService.getLanguages().subscribe({
+    next: (languages) => {
+       console.log('SIGNUP LANGUAGES:', languages);
+      this.languages.set(languages);
+    },
+    error: (err) => {
+      console.error('Failed to load languages:', err);
+      this.error.set('Unable to load languages.');
+    }
+  });
+}
 
   constructor() {
     this.form = this.fb.group({

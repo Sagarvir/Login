@@ -9,5 +9,6 @@ namespace Translation.Service.Interfaces
     public interface ITranslationImportService
     {
         Task<ImportKeysResponse> ImportKeysAsync(IFormFile file, string empId, int projectId);
+        Task<ImportTranslationsResponse> ImportTranslationsAsync(IFormFile file, string empId, string preferredLanguageCode);
     }
 }
