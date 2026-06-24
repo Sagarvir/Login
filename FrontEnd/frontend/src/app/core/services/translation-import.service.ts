@@ -17,4 +17,13 @@ export class TranslationImportService {
 
     return this.http.post<any>(`${this.apiUrl}/keys`, formData);
   }
+  importTranslations(file: File) {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  return this.http.post<any>(
+    `${this.apiUrl}/translations`,
+    formData
+  );
+}
 }

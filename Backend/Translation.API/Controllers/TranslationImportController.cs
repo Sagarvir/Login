@@ -7,7 +7,7 @@ namespace Translation.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Creator")]
+    
     public class TranslationImportController : ControllerBase
     {
         private readonly ITranslationImportService _importService;
@@ -18,6 +18,7 @@ namespace Translation.API.Controllers
         }
 
         [HttpPost("keys")]
+        [Authorize(Roles = "Creator")]
         public async Task<IActionResult> ImportKeys(IFormFile file, [FromForm] int projectId)
         {
             var empId = User.FindFirst("EmployeeId")?.Value
@@ -33,8 +34,9 @@ namespace Translation.API.Controllers
 
             return Ok(result);
         }
+
         [HttpPost("translations")]
-        [Authorize(Roles = "Translator")]
+        [Authorize(Roles = "Translator,translator")]
 
         public async Task<IActionResult> ImportTranslations(IFormFile file)
         {

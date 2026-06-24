@@ -1,0 +1,31 @@
+<h2 mat-dialog-title>Import Translations</h2>
+
+<mat-dialog-content class="dialog-content">
+  <p class="hint">
+    Upload JSON / XLF / XLIFF file. Translations will be imported only for your assigned language.
+  </p>
+
+  <div class="file-section">
+    <label class="file-label">Choose translation file</label>
+
+    <input
+      type="file"
+      accept=".json,.xlf,.xliff"
+      (change)="onFileSelected($event)" />
+
+    <p *ngIf="selectedFile" class="selected-file">
+      Selected file: {{ selectedFile.name }}
+    </p>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancel</button>
+
+  <button
+  mat-raised-button
+  color="primary"
+  (click)="importTranslations()">
+  Import
+</button>
+</mat-dialog-actions>

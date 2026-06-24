@@ -30,6 +30,7 @@ import { AddTranslationDialogComponent, AddTranslationDialogResult } from '../ad
 import { AuthService } from '../../core/services/auth.service';
 import { isDataSource } from '@angular/cdk/collections';
 import { ImportKeysDialogComponent } from '../import-keys-dialog/import-keys-dialog.component';
+import { ImportTranslationsDialogComponent } from '../import-translations-dialog/import-translations-dialog.component';
 
 @Component({
   selector: 'app-translation-table',
@@ -50,6 +51,7 @@ import { ImportKeysDialogComponent } from '../import-keys-dialog/import-keys-dia
     MatCardModule,
     MatSelectModule,
 ImportKeysDialogComponent,
+ImportTranslationsDialogComponent,
   ],
   templateUrl: './translation-table.component.html',
   styleUrl: './translation-table.component.scss',
@@ -344,6 +346,18 @@ openImportDialog(): void {
   dialogRef.afterClosed().subscribe((result) => {
     if (result === true) {
       this.loadAllData(this.selectedLanguage);
+    }
+  });
+}
+
+openImportTranslationsDialog(): void {
+  const dialogRef = this.dialog.open(ImportTranslationsDialogComponent, {
+    width: '600px'
+  });
+
+  dialogRef.afterClosed().subscribe(result => {
+    if (result === true) {
+      this.loadAllData(this.selectedLanguage); 
     }
   });
 }

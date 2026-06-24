@@ -17,6 +17,8 @@ export class AuthInterceptor implements HttpInterceptor {
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
 
     const token = this.authService.getAccessToken();
+    console.log('INTERCEPTOR URL:', req.url);
+console.log('TOKEN EXISTS:', !!token);
 
     let authReq = req;
     if (token) {
@@ -33,9 +35,13 @@ export class AuthInterceptor implements HttpInterceptor {
     return next.handle(authReq).pipe(
       catchError((error: HttpErrorResponse) => {
 
-        if (error.status === 401 || error.status === 403) {
-          return this.handle401Error(authReq, next);
-        }
+        if (error.status === 401) {
+  return this.handle401Error(authReq, next);
+}
+
+if (error.status === 403) {
+  return throwError(() => error);
+}
 
         return throwError(() => error);
       })
