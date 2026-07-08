@@ -124,12 +124,10 @@ namespace Translation.Service.Services
                 normalizedItems.Add(new ImportKeyDto
                 {
                     ExternalKeyId = row.ExternalKeyId,
-
-                    // IMPORTANT:
-                    // Do not uppercase XLIFF-style keys.
                     KeyName = row.KeyName.Trim(),
-
                     OriginalText = row.OriginalText.Trim(),
+                    Translation = row.Translation?.Trim(),
+                    LanguageCode = row.LanguageCode?.Trim(),
                     ProjectId = projectId
                 });
             }
@@ -178,12 +176,14 @@ namespace Translation.Service.Services
             var existingKeyNameSet = existingKeyNames
                 .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
+            var keysToInsert = new List<TranslationKey>();
+
             foreach (var item in normalizedItems)
             {
                 if (existingKeyNameSet.Contains(item.KeyName!))
                 {
                     response.SkippedCount++;
-                    response.Warnings.Add($"Skipped existing key: {item.KeyName}");
+                    response.Warnings.Add($"Key already exists: {item.KeyName}. Translation will still be imported if available.");
                     continue;
                 }
 
@@ -197,10 +197,70 @@ namespace Translation.Service.Services
                     IsActive = true
                 };
 
-                await _context.TranslationKeys.AddAsync(key);
+                keysToInsert.Add(key);
                 existingKeyNameSet.Add(item.KeyName!);
                 response.InsertedCount++;
             }
+
+            if (keysToInsert.Any())
+            {
+                await _context.TranslationKeys.AddRangeAsync(keysToInsert);
+                await _context.SaveChangesAsync();
+            }
+
+            var allKeyNames = normalizedItems
+    .Select(x => x.KeyName!)
+    .Distinct(StringComparer.OrdinalIgnoreCase)
+    .ToList();
+
+            var allKeys = await _context.TranslationKeys
+                .Where(k => allKeyNames.Contains(k.KeyName))
+                .ToListAsync();
+
+            var keyMap = allKeys
+                .ToDictionary(k => k.KeyName, k => k.Id, StringComparer.OrdinalIgnoreCase);
+
+            foreach (var item in normalizedItems)
+            {
+                if (string.IsNullOrWhiteSpace(item.Translation) ||
+                    string.IsNullOrWhiteSpace(item.LanguageCode))
+                {
+                    continue;
+                }
+
+                if (!keyMap.TryGetValue(item.KeyName!, out var keyId))
+                {
+                    response.Warnings.Add($"Translation skipped because key was not found: {item.KeyName}");
+                    continue;
+                }
+
+                var languageCode = item.LanguageCode.Trim().ToLower();
+
+                var existingValue = await _context.TranslationValues
+                    .FirstOrDefaultAsync(v =>
+                        v.TranslationKeyId == keyId &&
+                        v.LanguageCode.ToLower() == languageCode);
+
+                if (existingValue == null)
+                {
+                    await _context.TranslationValues.AddAsync(new TranslationValue
+                    {
+                        TranslationKeyId = keyId,
+                        LanguageCode = languageCode,
+                        Value = item.Translation.Trim(),
+                        UpdatedByEmpId = empId,
+                        UpdatedAt = DateTime.UtcNow
+                    });
+                }
+                else
+                {
+                    existingValue.Value = item.Translation.Trim();
+                    existingValue.UpdatedByEmpId = empId;
+                    existingValue.UpdatedAt = DateTime.UtcNow;
+                }
+            }
+
+            await _context.SaveChangesAsync();
 
             try
             {
@@ -237,6 +297,12 @@ namespace Translation.Service.Services
                 .Where(x => x.Name.LocalName == "trans-unit")
                 .ToList();
 
+            var fileNode = document
+    .Descendants()
+    .FirstOrDefault(x => x.Name.LocalName == "file");
+
+            var targetLanguage = fileNode?.Attribute("target-language")?.Value;
+
             var items = new List<ImportKeyDto>();
 
             foreach (var unit in transUnits)
@@ -247,10 +313,16 @@ namespace Translation.Service.Services
                     .FirstOrDefault(x => x.Name.LocalName == "source")
                     ?.Value;
 
+                var target = unit.Elements()
+    .FirstOrDefault(x => x.Name.LocalName == "target")
+    ?.Value;
+
                 items.Add(new ImportKeyDto
                 {
                     KeyName = keyName,
                     OriginalText = source,
+                    Translation = target,
+                    LanguageCode = targetLanguage,
                     ProjectId = projectId
                 });
             }

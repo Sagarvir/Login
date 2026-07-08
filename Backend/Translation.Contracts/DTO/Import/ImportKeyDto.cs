@@ -10,5 +10,7 @@ namespace Translation.Contracts.DTO.Import
         public string? KeyName { get; set; }
         public string? OriginalText { get; set; }
         public int? ProjectId { get; set; }
+        public string? Translation { get; set; }
+        public string? LanguageCode { get; set; }
     }
 }

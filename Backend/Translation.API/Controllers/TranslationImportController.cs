@@ -7,7 +7,8 @@ namespace Translation.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    
+    [Authorize(Roles = "Creator")]
+
     public class TranslationImportController : ControllerBase
     {
         private readonly ITranslationImportService _importService;
@@ -35,7 +36,7 @@ namespace Translation.API.Controllers
             return Ok(result);
         }
 
-        [HttpPost("translations")]
+      /*  [HttpPost("translations")]
         [Authorize(Roles = "Translator,translator")]
 
         public async Task<IActionResult> ImportTranslations(IFormFile file)
@@ -61,6 +62,6 @@ namespace Translation.API.Controllers
                 return BadRequest(result);
 
             return Ok(result);
-        }
+        } */
     }
 }

@@ -16,18 +16,11 @@
   (click)="openImportDialog()">
 
   <mat-icon>upload_file</mat-icon>
-  <span>Import Keys</span>
+  <span>Import Keys & Translations</span>
 
 </div>
 
-      <div
-  class="import-box"
-  *ngIf="isTranslator()"
-  (click)="openImportTranslationsDialog()">
-
-  <mat-icon>upload_file</mat-icon>
-  <span>Import Translations</span>
-</div>
+      
 
       <mat-form-field appearance="outline" class="language-select" *ngIf="isCreator()||isAdmin()||isViewer()">
         <mat-label>Language</mat-label>
