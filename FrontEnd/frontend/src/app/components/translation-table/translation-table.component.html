@@ -113,9 +113,9 @@
 <ng-container matColumnDef="actions">
   <th mat-header-cell *matHeaderCellDef>Actions</th>
   <td mat-cell *matCellDef="let element; let i = index">
-    <!-- Delete Button - Only visible to Creator or Translator -->
+    <!-- Delete Button - Only visible to Creator -->
     <button
-      *ngIf="isCreator() || isTranslator()"
+      *ngIf="isCreator()"
       mat-icon-button
       color="warn"
       (click)="deleteTranslation(i)"
@@ -127,7 +127,7 @@
 
     <!-- Lock Icon - Shown when user lacks permission -->
     <mat-icon
-      *ngIf="!isCreator() && !isTranslator()"
+      *ngIf="!isCreator()"
       matTooltip="You don't have permission to delete"
       class="lock-icon"
     >

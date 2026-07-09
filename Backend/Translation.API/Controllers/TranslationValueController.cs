@@ -134,7 +134,7 @@ namespace Translation.API.Controllers
 
         // Delete the Translations for a specific Translation KeyName (Translator only)
         [HttpDelete("{keyName}/{languageCode}")]
-        [Authorize(Roles = "Translator")]
+        [Authorize(Roles = "Creator")]
         public async Task<IActionResult> DeleteTranslations(string keyName, string languageCode)
         {
             try
